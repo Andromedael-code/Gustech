@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">SSD NVMe Gen4 2TB</title>
+  <desc id="desc">Ilustracao de um SSD NVMe</desc>
+  <rect width="1200" height="900" fill="#08111f"/>
+  <g transform="translate(210 320)">
+    <rect width="780" height="220" rx="36" fill="#0f172a" stroke="#475569" stroke-width="10"/>
+    <rect x="46" y="52" width="270" height="116" rx="18" fill="#2563eb" opacity=".18"/>
+    <rect x="340" y="52" width="160" height="116" rx="18" fill="#1e293b"/>
+    <rect x="526" y="52" width="120" height="116" rx="18" fill="#1e293b"/>
+    <rect x="670" y="52" width="62" height="116" rx="18" fill="#facc15"/>
+    <circle cx="86" cy="110" r="12" fill="#94a3b8"/>
+    <circle cx="700" cy="110" r="12" fill="#94a3b8"/>
+  </g>
+  <text x="220" y="230" fill="#e2e8f0" font-size="64" font-family="Arial, sans-serif" font-weight="700">SSD NVMe Gen4 2TB</text>
+  <text x="220" y="290" fill="#94a3b8" font-size="34" font-family="Arial, sans-serif">Armazenamento de alta velocidade</text>
+</svg>

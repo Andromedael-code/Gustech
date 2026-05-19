@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GusTech: e-commerce gamer com catálogo moderno, compra segura, wishlist, carrinho e checkout profissional.">
+  <title>GusTech | Loja Gamer Premium</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Oxanium', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/storefront.css">
+  <script src="js/theme.js"></script>
+</head>
+<body class="store-shell text-slate-100 antialiased">
+  <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
+
+  <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+    <div class="page-container page-container--store py-2.5">
+      <div class="store-header-shell">
+        <a href="index.html" class="store-brand" aria-label="GusTech">
+          <span class="store-brand__badge"><i class="fas fa-gamepad"></i></span>
+          <span class="store-brand__wordmark">GUS <span>TECH</span></span>
+        </a>
+
+        <div class="store-header-search">
+          <i class="fas fa-magnifying-glass"></i>
+          <input id="search-input" class="store-header-search__input" type="search" placeholder="Buscar...">
+        </div>
+
+        <div class="store-header-actions">
+          <div data-theme-slot></div>
+          <a id="orders-btn" class="secondary-btn text-sm" href="pedidos.html"><i class="fas fa-box"></i>Pedidos</a>
+          <a id="auth-action-btn" class="secondary-btn text-sm" href="conta.html">Entrar / Criar conta</a>
+          <a class="secondary-btn store-icon-btn relative" href="carrinho.html" aria-label="Carrinho">
+            <i class="fas fa-bag-shopping"></i>
+            <span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span>
+          </a>
+        </div>
+      </div>
+
+      <nav class="store-category-rail">
+        <div id="category-pills" class="store-category-rail__list"></div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-container page-container--store py-0 space-y-8">
+    <section class="store-slider storefront-hero">
+      <div id="slider-track" class="store-slider__track"></div>
+      <div class="store-slider__controls">
+        <button id="slider-prev-btn" class="secondary-btn" type="button" aria-label="Slide anterior"><i class="fas fa-chevron-left"></i></button>
+        <div id="slider-dots" class="store-slider__dots"></div>
+        <button id="slider-next-btn" class="secondary-btn" type="button" aria-label="Próximo slide"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </section>
+
+    <section id="catalog-section" class="space-y-4">
+      <div class="surface-panel rounded-[32px] p-5 md:p-6">
+        <div class="filters-grid">
+          <select id="category-select" class="store-select">
+            <option value="">Todas as categorias</option>
+          </select>
+          <input id="price-min" class="store-input" type="number" min="0" placeholder="Preço mínimo">
+          <input id="price-max" class="store-input" type="number" min="0" placeholder="Preço máximo">
+          <select id="sort-select" class="store-select">
+            <option value="relevance">Mais relevantes</option>
+            <option value="top_rated">Melhor avaliados</option>
+            <option value="best_sellers">Mais vendidos</option>
+            <option value="price_asc">Menor preço</option>
+            <option value="price_desc">Maior preço</option>
+            <option value="newest">Mais novos</option>
+          </select>
+        </div>
+
+        <div class="catalog-toolbar catalog-toolbar--vitrine">
+          <div>
+            <div class="mini-meta uppercase tracking-[0.18em]">Catálogo</div>
+            <h2 class="text-3xl font-display font-bold mt-2">Vitrine principal</h2>
+          </div>
+          <div id="catalog-count" class="status-pill status-pill--info">Carregando catálogo...</div>
+        </div>
+
+        <div class="pagination-bar pagination-bar--catalog">
+          <button class="secondary-btn pagination-nav-btn" type="button" data-catalog-prev-btn>Anterior</button>
+          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando página...</div>
+          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>Próxima</button>
+        </div>
+
+        <div id="products-grid" class="product-grid product-grid--compact"></div>
+
+        <div class="pagination-bar pagination-bar--catalog pagination-bar--catalog-bottom">
+          <button class="secondary-btn pagination-nav-btn" type="button" data-catalog-prev-btn>Anterior</button>
+          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando página...</div>
+          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>Próxima</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="store-footer">
+    <div class="page-container page-container--store">
+      <div class="store-footer__grid">
+        <section class="store-footer__brand">
+          <a href="index.html" class="store-brand store-footer__logo" aria-label="GusTech">
+            <span class="store-brand__badge"><i class="fas fa-gamepad"></i></span>
+            <span class="store-brand__wordmark">GUS <span>TECH</span></span>
+          </a>
+          <p class="store-footer__text">Sua loja especializada em realizar sonhos gamers. Segurança, qualidade e paixão em cada entrega.</p>
+          <div class="store-footer__socials">
+            <a class="store-footer__social" href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a class="store-footer__social" href="https://wa.me/5500000000000" target="_blank" rel="noreferrer" aria-label="WhatsApp">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+          </div>
+        </section>
+
+        <section>
+          <h3 class="store-footer__title">Links úteis</h3>
+          <nav class="store-footer__links">
+            <a href="politica-de-privacidade.html"><i class="fas fa-chevron-right"></i>Política de Privacidade</a>
+            <a href="termos-e-condicoes.html"><i class="fas fa-chevron-right"></i>Termos de Uso</a>
+          </nav>
+        </section>
+
+        <section>
+          <h3 class="store-footer__title">Pagamento</h3>
+          <div class="store-footer__payments" aria-label="Formas de pagamento">
+            <span class="store-footer__payment">VISA</span>
+            <span class="store-footer__payment">MC</span>
+            <span class="store-footer__payment">PIX</span>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div class="store-footer__bottom">
+      <div class="page-container page-container--store">
+        <p>&copy; 2025 GusTech. Todos os direitos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <a class="store-whatsapp-float" href="https://wa.me/5500000000000" target="_blank" rel="noreferrer" aria-label="Falar no WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="js/api.js"></script>
+  <script type="module" src="js/catalog-page.js"></script>
+</body>
+</html>

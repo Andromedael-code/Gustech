@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conta | GusTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Oxanium', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/storefront.css">
+  <script src="js/theme.js"></script>
+</head>
+<body class="store-shell text-slate-100 antialiased">
+  <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
+
+  <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+    <div class="page-container page-header py-4">
+      <div class="page-header__left">
+        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+      </div>
+      <div class="page-header__center">
+        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+      </div>
+      <div class="page-header__right">
+        <div data-theme-slot></div>
+        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="account-main" class="page-container py-8">
+    <div id="account-layout" class="account-layout-shell">
+      <aside id="account-sidebar" class="surface-panel rounded-[32px] p-8 hidden">
+        <div class="mini-meta uppercase tracking-[0.22em]">Conta GusTech</div>
+        <h1 class="mt-3 text-4xl font-display font-bold leading-tight">Seu cadastro, enderecos e pedidos no mesmo lugar</h1>
+        <p class="mt-4 text-slate-400">Gerencie dados pessoais, escolha o endereco principal e acompanhe os pedidos sem sair do ecossistema da loja.</p>
+
+        <nav class="mt-8 space-y-3">
+          <button id="side-tab-account" type="button" class="account-nav-btn is-active"><i class="fas fa-user"></i>Minha conta</button>
+          <button id="side-tab-addresses" type="button" class="account-nav-btn"><i class="fas fa-map-location-dot"></i>Enderecos</button>
+          <button id="side-tab-orders" type="button" class="account-nav-btn"><i class="fas fa-box"></i>Meus pedidos</button>
+        </nav>
+      </aside>
+
+      <section id="account-panel-shell" class="surface-panel rounded-[32px] p-6 md:p-8">
+        <div class="flex flex-wrap items-center gap-3 mb-6">
+          <button id="tab-login" type="button" class="secondary-btn account-top-tab is-active">Entrar</button>
+          <button id="tab-signup" type="button" class="secondary-btn account-top-tab">Criar conta</button>
+          <button id="tab-account" type="button" class="secondary-btn account-top-tab hidden">Minha conta</button>
+        </div>
+
+        <section id="login-panel" class="account-section">
+          <div class="account-section__header">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Acesso</div>
+              <h2 class="mt-2 text-3xl font-display font-bold">Entrar na sua conta</h2>
+            </div>
+            <p class="text-sm text-slate-400 max-w-xl">Use seu e-mail e senha para continuar compras, revisar pedidos e atualizar seu cadastro.</p>
+          </div>
+
+          <form id="login-form" class="account-form-grid mt-6">
+            <input required id="login-email" type="email" placeholder="E-mail" class="store-input full-span">
+            <div class="password-field full-span">
+              <input required id="login-password" type="password" minlength="6" placeholder="Senha" class="store-input">
+              <button id="toggle-login-password" type="button" class="password-field__toggle" aria-label="Mostrar senha"><i class="fas fa-eye"></i></button>
+            </div>
+            <button class="primary-btn full-span" type="submit">Entrar</button>
+          </form>
+
+          <button id="go-signup-btn" type="button" class="ghost-btn mt-4">Nao tem conta? Criar conta</button>
+        </section>
+
+        <section id="signup-panel" class="account-section hidden">
+          <div class="account-section__header">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Cadastro</div>
+              <h2 class="mt-2 text-3xl font-display font-bold">Criar conta</h2>
+            </div>
+            <p class="text-sm text-slate-400 max-w-xl">Cadastre seus dados agora e complete os enderecos depois, sem travar sua jornada de compra.</p>
+          </div>
+
+          <form id="signup-form" class="account-form-grid mt-6">
+            <input required id="signup-username" placeholder="Nome de usuario" class="store-input">
+            <input required id="signup-name" placeholder="Nome completo" class="store-input">
+            <input required id="signup-email" type="email" placeholder="E-mail" class="store-input full-span">
+            <div class="password-field full-span">
+              <input required id="signup-password" type="password" minlength="6" placeholder="Senha" class="store-input">
+              <button id="toggle-signup-password" type="button" class="password-field__toggle" aria-label="Mostrar senha"><i class="fas fa-eye"></i></button>
+            </div>
+            <div class="full-span mini-meta" id="password-strength-label">Forca da senha: -</div>
+            <input id="signup-phone" placeholder="Celular" class="store-input">
+            <input id="signup-cpf" placeholder="CPF" class="store-input">
+            <label class="surface-panel rounded-2xl px-4 py-3 flex items-start gap-3 full-span">
+              <input id="signup-terms" type="checkbox" class="mt-1 accent-blue-500">
+              <span class="text-sm text-slate-300">Li e concordo com os termos e com a politica de privacidade da GusTech.</span>
+            </label>
+            <button class="primary-btn full-span" type="submit">Criar conta</button>
+          </form>
+        </section>
+
+        <section id="account-content" class="hidden">
+          <section id="account-panel" class="account-section">
+            <div class="account-section__header">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Perfil</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Minha conta</h2>
+              </div>
+            </div>
+
+            <form id="profile-form" class="account-form-grid mt-6">
+              <div class="account-inline-field full-span">
+                <div class="account-inline-field__header">
+                  <label for="profile-username" class="mini-meta uppercase tracking-[0.14em]">Nome de Usuário</label>
+                </div>
+                <div class="account-inline-input">
+                  <input required id="profile-username" placeholder="Nome de usuario" class="store-input store-input--locked" readonly aria-readonly="true">
+                  <button id="edit-username-btn" class="account-inline-input__action" type="button" aria-label="Editar nick" title="Editar nick">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="account-inline-field full-span">
+                <div class="account-inline-field__header">
+                  <label for="profile-name" class="mini-meta uppercase tracking-[0.14em]">Nome completo</label>
+                </div>
+                <input required id="profile-name" placeholder="Nome completo" class="store-input store-input--locked" readonly aria-readonly="true">
+              </div>
+
+              <div class="account-inline-field full-span">
+                <div class="account-inline-field__header">
+                  <label for="profile-phone" class="mini-meta uppercase tracking-[0.14em]">Celular</label>
+                </div>
+                <div class="account-inline-input">
+                  <input id="profile-phone" placeholder="Celular" class="store-input store-input--locked" readonly aria-readonly="true">
+                  <button id="edit-phone-btn" class="account-inline-input__action" type="button" aria-label="Editar celular" title="Editar celular">
+                    <i class="fas fa-pen"></i>
+                  </button>
+                </div>
+                <div class="account-inline-field__actions">
+                  <button id="save-phone-btn" class="primary-btn !py-2 !px-3 hidden" type="button">Salvar número</button>
+                </div>
+                <p id="phone-verification-status" class="mini-meta mt-3">Seu celular atual ainda não foi confirmado por SMS.</p>
+              </div>
+
+              <div id="phone-verification-panel" class="surface-panel rounded-[24px] p-4 md:p-5 full-span hidden">
+                <div class="mini-meta uppercase tracking-[0.14em]">Confirmação por SMS</div>
+                <p id="phone-verification-message" class="mt-2 text-sm text-slate-300">Enviamos um código para o novo número. Digite abaixo para concluir a troca.</p>
+                <div class="account-phone-verify-grid mt-4">
+                  <input id="phone-verification-code" class="store-input" inputmode="numeric" placeholder="Código recebido por SMS">
+                  <button id="confirm-phone-code-btn" class="primary-btn" type="button">Confirmar código</button>
+                </div>
+              </div>
+
+              <div class="account-inline-field full-span">
+                <div class="account-inline-field__header">
+                  <label for="profile-cpf" class="mini-meta uppercase tracking-[0.14em]">CPF</label>
+                </div>
+                <input id="profile-cpf" placeholder="CPF" class="store-input store-input--locked" readonly aria-readonly="true">
+              </div>
+              <button class="primary-btn full-span" type="submit">Salvar dados pessoais</button>
+            </form>
+          </section>
+
+          <section id="addresses-panel" class="account-section hidden">
+            <div class="account-section__header">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Entrega</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Enderecos</h2>
+              </div>
+            </div>
+
+            <div id="addresses-list" class="space-y-3 mt-6"></div>
+
+            <form id="address-form" class="surface-panel rounded-[28px] p-5 md:p-6 mt-6 account-form-grid">
+              <input id="address-id" type="hidden">
+              <input id="address-label" placeholder="Nome do endereco" class="store-input full-span">
+              <input id="address-street" placeholder="Rua / Avenida" class="store-input full-span">
+              <input id="address-number" placeholder="Numero" class="store-input">
+              <input id="address-neighborhood" placeholder="Bairro" class="store-input">
+              <input id="address-zip" placeholder="CEP" class="store-input">
+              <input id="address-complement" placeholder="Complemento" class="store-input">
+              <label class="surface-panel rounded-2xl px-4 py-3 flex items-center gap-3 full-span">
+                <input id="address-default" type="checkbox" class="accent-blue-500">
+                <span>Definir como endereco principal</span>
+              </label>
+              <div class="full-span flex flex-wrap justify-end gap-3">
+                <button id="clear-address-form" type="button" class="secondary-btn">Limpar</button>
+                <button class="primary-btn" type="submit">Salvar endereco</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="orders-panel" class="account-section hidden">
+            <div class="account-section__header">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Historico</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Meus pedidos</h2>
+              </div>
+              <p class="text-sm text-slate-400 max-w-xl">Visualize status, itens, totais e acompanhe toda a linha de pedidos da sua conta.</p>
+            </div>
+            <div id="orders-list" class="space-y-4 mt-6"></div>
+          </section>
+
+          <button id="logout-btn" class="danger-btn mt-6 hidden" type="button"><i class="fas fa-right-from-bracket"></i>Sair</button>
+        </section>
+
+        <p id="feedback" class="mt-5 text-sm hidden"></p>
+      </section>
+    </div>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/api-compat.js"></script>
+  <script type="module" src="js/account-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | GusTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Oxanium', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/storefront.css">
+  <script src="js/theme.js"></script>
+</head>
+<body class="store-shell text-slate-100 antialiased">
+  <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
+
+  <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+    <div class="page-container page-header py-4">
+      <div class="page-header__left">
+        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+      </div>
+      <div class="page-header__center">
+        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+      </div>
+      <div class="page-header__right">
+        <div data-theme-slot></div>
+        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container py-8 space-y-8">
+    <section id="login-card" class="surface-panel rounded-[32px] p-8 max-w-md mx-auto">
+      <div class="mini-meta uppercase tracking-[0.22em]">Painel administrativo</div>
+      <h1 class="text-4xl font-display font-bold mt-2">Entrar no admin</h1>
+      <p class="text-slate-400 mt-3">Use a conta de administrador para gerenciar catalogo, estoque, imagens e ficha tecnica.</p>
+      <form id="login-form" class="space-y-4 mt-6">
+        <input id="login-email" class="store-input" type="email" placeholder="Email admin" required>
+        <input id="login-password" class="store-input" type="password" placeholder="Senha" required>
+        <button class="primary-btn w-full" type="submit">Entrar</button>
+      </form>
+    </section>
+
+    <section id="admin-panel" class="hidden admin-shell">
+      <section class="surface-panel rounded-[32px] p-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <div class="mini-meta uppercase tracking-[0.22em]">Controle da loja</div>
+          <h1 class="text-4xl font-display font-bold mt-2">Painel de produtos GusTech</h1>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <button id="logout-btn" class="danger-btn"><i class="fas fa-right-from-bracket"></i>Sair</button>
+        </div>
+      </section>
+
+      <section class="admin-overview">
+        <article class="stat-card rounded-[28px] p-6">
+          <div class="mini-meta uppercase tracking-[0.16em]">Produtos</div>
+          <div id="stat-products" class="mt-3 text-4xl font-display font-bold">0</div>
+          <div class="mt-2 text-sm text-slate-400">Itens cadastrados na base</div>
+        </article>
+        <article class="stat-card rounded-[28px] p-6">
+          <div class="mini-meta uppercase tracking-[0.16em]">Ativos</div>
+          <div id="stat-active" class="mt-3 text-4xl font-display font-bold">0</div>
+          <div class="mt-2 text-sm text-slate-400">Produtos visiveis na loja</div>
+        </article>
+        <article class="stat-card rounded-[28px] p-6">
+          <div class="mini-meta uppercase tracking-[0.16em]">Estoque</div>
+          <div id="stat-stock" class="mt-3 text-4xl font-display font-bold">0</div>
+          <div class="mt-2 text-sm text-slate-400">Soma das unidades disponiveis</div>
+        </article>
+        <article class="stat-card rounded-[28px] p-6">
+          <div class="mini-meta uppercase tracking-[0.16em]">Categorias</div>
+          <div id="stat-categories" class="mt-3 text-4xl font-display font-bold">0</div>
+          <div class="mt-2 text-sm text-slate-400">Categorias ativas no catalogo</div>
+        </article>
+      </section>
+
+      <section class="admin-tabs">
+        <button class="admin-tab-btn is-active" type="button" data-admin-tab="products">Produtos</button>
+        <button class="admin-tab-btn" type="button" data-admin-tab="home">Home</button>
+      </section>
+
+      <div id="admin-products-view" class="admin-tab-view">
+        <section class="admin-layout">
+          <article id="product-form-card" class="surface-panel rounded-[32px] p-8">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Cadastro e edicao</div>
+                <h2 id="form-title" class="mt-2 text-3xl font-display font-bold">Cadastrar produto</h2>
+              </div>
+            </div>
+
+            <form id="product-form" class="admin-form-grid mt-6">
+              <input id="product-id" name="id" class="store-input" placeholder="ID unico do produto">
+              <input id="product-brand" name="brand" class="store-input" placeholder="Marca">
+              <input id="product-name" name="name" class="store-input full-span" placeholder="Nome do produto" required>
+
+            <div class="full-span admin-category-selector">
+              <div class="mini-meta uppercase tracking-[0.16em]">Categorias do produto</div>
+              <div id="product-categories-field" class="admin-category-picker"></div>
+            </div>
+            <input id="product-condition" name="condition" class="store-input" placeholder="Condicao">
+
+              <input id="product-price" name="price" type="number" step="0.01" class="store-input" placeholder="Preco atual" required>
+              <input id="product-old-price" name="oldPrice" type="number" step="0.01" class="store-input" placeholder="Preco antigo">
+
+              <input id="product-stock" name="stock" type="number" class="store-input" placeholder="Estoque">
+              <input id="product-relevance" name="relevanceScore" type="number" class="store-input" placeholder="Relevancia">
+
+              <div class="full-span file-dropzone">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <div>
+                    <div class="font-semibold text-white">Imagem principal</div>
+                    <div class="mini-meta">Selecione uma imagem do computador. O link manual foi removido.</div>
+                  </div>
+                  <label class="secondary-btn cursor-pointer">
+                    <i class="fas fa-upload"></i>Escolher imagem
+                    <input id="product-image-file" type="file" accept="image/*" class="hidden">
+                  </label>
+                </div>
+                <div id="main-image-preview" class="preview-grid"></div>
+              </div>
+
+              <div class="full-span file-dropzone">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                  <div>
+                    <div class="font-semibold text-white">Galeria do produto</div>
+                    <div class="mini-meta">Envie varias imagens do computador e remova as que nao quiser manter.</div>
+                  </div>
+                  <label class="secondary-btn cursor-pointer">
+                    <i class="fas fa-images"></i>Adicionar galeria
+                    <input id="product-gallery-files" type="file" accept="image/*" multiple class="hidden">
+                  </label>
+                </div>
+                <div id="gallery-preview" class="preview-grid"></div>
+              </div>
+
+              <textarea id="product-description" name="description" class="store-textarea full-span" rows="5" placeholder="Descricao detalhada"></textarea>
+              <textarea id="product-specs" name="specs" class="store-textarea full-span" rows="7" placeholder="Ficha tecnica&#10;Exemplo: Armazenamento: 1TB&#10;Exemplo: Conectividade: Wireless"></textarea>
+
+              <label class="surface-panel rounded-2xl px-4 py-3 flex items-center gap-3 full-span">
+                <input id="is-active" type="checkbox" checked>
+                <span>Produto ativo no catalogo</span>
+              </label>
+
+              <div class="full-span flex flex-wrap justify-end gap-3">
+                <button id="reset-form-btn" class="secondary-btn" type="button">Limpar formulario</button>
+                <button class="primary-btn" type="submit"><i class="fas fa-floppy-disk"></i>Salvar produto</button>
+              </div>
+            </form>
+          </article>
+
+          <article class="surface-panel rounded-[32px] p-8">
+            <div class="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Catalogo atual</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Produtos cadastrados</h2>
+              </div>
+              <div id="product-count" class="status-pill status-pill--info">0 produtos</div>
+            </div>
+
+            <div class="table-tools">
+              <input id="admin-product-search" class="store-input" type="search" placeholder="Buscar por nome, marca, categoria ou ID">
+            </div>
+
+            <div class="pagination-bar pagination-bar--admin">
+              <button class="secondary-btn pagination-nav-btn" type="button" data-admin-prev-btn>Anterior</button>
+              <div class="mini-meta pagination-bar__info" data-admin-pagination-info>Carregando pagina...</div>
+              <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-admin-next-btn>Proxima</button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="admin-table w-full text-left">
+                <colgroup>
+                  <col class="admin-col-product">
+                  <col class="admin-col-price">
+                  <col class="admin-col-stock">
+                  <col class="admin-col-actions">
+                </colgroup>
+                <thead class="text-xs uppercase text-slate-400">
+                  <tr>
+                    <th class="px-4 py-3">Produto</th>
+                    <th class="px-4 py-3">Preco</th>
+                    <th class="px-4 py-3">Estoque</th>
+                    <th class="px-4 py-3 text-right">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody id="products-tbody"></tbody>
+              </table>
+            </div>
+
+            <div class="pagination-bar pagination-bar--admin pagination-bar--admin-bottom">
+              <button class="secondary-btn pagination-nav-btn" type="button" data-admin-prev-btn>Anterior</button>
+              <div class="mini-meta pagination-bar__info" data-admin-pagination-info>Carregando pagina...</div>
+              <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-admin-next-btn>Proxima</button>
+            </div>
+          </article>
+        </section>
+      </div>
+
+      <div id="admin-home-view" class="admin-tab-view hidden">
+        <section class="admin-home-grid">
+          <article class="surface-panel rounded-[32px] p-8">
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Slides da home</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Produtos do carrossel</h2>
+                <p class="text-slate-400 mt-3">O primeiro slide institucional continua fixo. Aqui voce controla os slides de produto exibidos ao lado dele.</p>
+              </div>
+              <button id="add-home-slide-btn" class="secondary-btn" type="button"><i class="fas fa-plus"></i>Adicionar slide</button>
+            </div>
+            <div id="home-slides-list" class="admin-config-list"></div>
+          </article>
+
+          <article class="surface-panel rounded-[32px] p-8">
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div>
+                <div class="mini-meta uppercase tracking-[0.16em]">Topo da vitrine</div>
+                <h2 class="mt-2 text-3xl font-display font-bold">Categorias da header</h2>
+                <p class="text-slate-400 mt-3">Defina a ordem e quais categorias aparecem na faixa principal da home.</p>
+              </div>
+              <button id="add-home-category-btn" class="secondary-btn" type="button"><i class="fas fa-plus"></i>Adicionar categoria</button>
+            </div>
+            <div id="home-categories-list" class="admin-config-list"></div>
+          </article>
+        </section>
+
+        <section class="surface-panel rounded-[32px] p-8">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Publicacao</div>
+              <h2 class="mt-2 text-3xl font-display font-bold">Salvar configuracao da home</h2>
+            </div>
+            <button id="save-home-config-btn" class="primary-btn" type="button"><i class="fas fa-floppy-disk"></i>Salvar home</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="js/api.js"></script>
+  <script type="module" src="js/admin-page.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Headset HyperX Cloud III Wireless</title>
+  <desc id="desc">Ilustracao de um headset gamer wireless</desc>
+  <rect width="1200" height="900" fill="#0f172a"/>
+  <circle cx="600" cy="430" r="300" fill="#1e293b"/>
+  <path d="M360 440c0-150 108-270 240-270s240 120 240 270" fill="none" stroke="#475569" stroke-width="58" stroke-linecap="round"/>
+  <rect x="290" y="420" width="110" height="210" rx="48" fill="#334155"/>
+  <rect x="800" y="420" width="110" height="210" rx="48" fill="#334155"/>
+  <rect x="325" y="450" width="40" height="150" rx="18" fill="#0f172a"/>
+  <rect x="835" y="450" width="40" height="150" rx="18" fill="#0f172a"/>
+  <text x="180" y="150" fill="#e2e8f0" font-size="64" font-family="Arial, sans-serif" font-weight="700">HyperX Cloud III</text>
+  <text x="180" y="210" fill="#94a3b8" font-size="34" font-family="Arial, sans-serif">Headset wireless gamer</text>
+</svg>

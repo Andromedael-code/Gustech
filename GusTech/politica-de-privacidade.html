@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Politica de Privacidade da GusTech.">
+  <title>Politica de Privacidade | GusTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Oxanium', 'sans-serif'] }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/storefront.css">
+  <script src="js/theme.js"></script>
+</head>
+<body class="store-shell text-slate-100 antialiased">
+  <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+    <div class="page-container page-header py-4">
+      <div class="page-header__left">
+        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+      </div>
+      <div class="page-header__center">
+        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+      </div>
+      <div class="page-header__right">
+        <div data-theme-slot></div>
+        <a href="conta.html" class="secondary-btn"><i class="fas fa-user"></i>Minha conta</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container py-10">
+    <article class="surface-panel rounded-[36px] p-8 md:p-10 max-w-4xl mx-auto prose prose-invert max-w-none">
+      <div class="mini-meta uppercase tracking-[0.22em]">Documentacao legal</div>
+      <h1 class="mt-3 text-5xl font-display font-bold">Politica de Privacidade</h1>
+      <p class="mt-5 text-slate-400">Entenda como a GusTech coleta, utiliza e protege as informacoes necessarias para operar a loja e oferecer uma experiencia segura.</p>
+
+      <h2 class="mt-8 text-2xl font-display font-bold">1. Coleta de informacoes</h2>
+      <p>Coletamos dados fornecidos no cadastro, na compra e no contato com a loja, como nome, e-mail, telefone, CPF e endereco de entrega.</p>
+
+      <h2 class="mt-8 text-2xl font-display font-bold">2. Uso das informacoes</h2>
+      <p>Esses dados sao utilizados para processar pedidos, atualizar o status da compra, realizar atendimento, prevenir fraude e melhorar a experiencia na plataforma.</p>
+
+      <h2 class="mt-8 text-2xl font-display font-bold">3. Compartilhamento</h2>
+      <p>Compartilhamos dados apenas quando necessario para viabilizar pagamento, entrega, atendimento e obrigacoes legais, sempre de forma proporcional a operacao.</p>
+
+      <h2 class="mt-8 text-2xl font-display font-bold">4. Seguranca</h2>
+      <p>Adotamos medidas tecnicas e organizacionais para reduzir riscos de acesso indevido, perda, alteracao ou divulgacao nao autorizada das informacoes.</p>
+
+      <h2 class="mt-8 text-2xl font-display font-bold">5. Direitos do titular</h2>
+      <p>Voce pode solicitar atualizacao, correcao ou exclusao de dados, observadas as obrigacoes legais e operacionais da loja.</p>
+    </article>
+  </main>
+
+  <script src="js/api.js"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | GusTech</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Oxanium:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Oxanium', 'sans-serif'] } } } };
+  </script>
+  <link rel="stylesheet" href="css/shared.css">
+  <link rel="stylesheet" href="css/storefront.css">
+  <script src="js/theme.js"></script>
+</head>
+<body class="store-shell text-slate-100 antialiased">
+  <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
+
+  <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
+    <div class="page-container page-header py-4">
+      <div class="page-header__left">
+        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+      </div>
+      <div class="page-header__center">
+        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+      </div>
+      <div class="page-header__right">
+        <div data-theme-slot></div>
+        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-container py-8 split-layout">
+    <section class="surface-panel rounded-[32px] p-8">
+      <div class="mini-meta uppercase tracking-[0.22em]">Etapa final</div>
+      <h2 class="text-3xl font-display font-bold mt-2">Confirme cliente, entrega e pagamento</h2>
+      <div id="customer-preview" class="surface-panel rounded-[24px] p-5 mt-6"></div>
+
+      <form id="checkout-form" class="space-y-5 mt-6">
+        <div>
+          <label class="mini-meta block mb-2">Endereco de entrega</label>
+          <select id="address-select" class="store-select"></select>
+          <p id="address-preview" class="mini-meta mt-2"></p>
+        </div>
+
+        <div>
+          <label class="mini-meta block mb-2">Forma de pagamento</label>
+          <select id="payment-method" class="store-select">
+            <option value="pix">Pix</option>
+            <option value="credit_card">Cartao de credito</option>
+            <option value="boleto">Boleto</option>
+            <option value="teste">Modo teste</option>
+          </select>
+          <p id="method-hint" class="mini-meta mt-2"></p>
+        </div>
+
+        <div id="card-block" class="hidden grid gap-4 md:grid-cols-2">
+          <input id="card-holder" class="store-input md:col-span-2" placeholder="Nome no cartao">
+          <input id="card-number" class="store-input" placeholder="Numero do cartao">
+          <select id="installments" class="store-select">
+            <option value="1">1x sem juros</option>
+            <option value="2">2x sem juros</option>
+            <option value="3">3x sem juros</option>
+          </select>
+        </div>
+
+        <div id="boleto-block" class="hidden">
+          <input id="boleto-due" class="store-input" value="Vencimento em 3 dias apos emissao" readonly>
+        </div>
+
+        <button class="primary-btn w-full" type="submit"><i class="fas fa-lock"></i>Criar pedido com seguranca</button>
+        <p id="checkout-feedback" class="mini-meta"></p>
+      </form>
+    </section>
+
+    <aside class="surface-panel rounded-[32px] p-6 h-fit lg:sticky lg:top-28">
+      <div class="mini-meta uppercase tracking-[0.22em]">Resumo final</div>
+      <div id="summary-items" class="space-y-3 mt-5"></div>
+      <div class="border-t border-white/10 mt-6 pt-6 summary-line text-lg">
+        <span>Total</span>
+        <strong id="summary-total">R$ 0,00</strong>
+      </div>
+    </aside>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="js/api.js"></script>
+  <script type="module" src="js/checkout-page.js"></script>
+</body>
+</html>

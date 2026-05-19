@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Mouse Logitech G Pro X Superlight 2</title>
+  <desc id="desc">Ilustracao de um mouse gamer leve</desc>
+  <rect width="1200" height="900" fill="#0b1220"/>
+  <ellipse cx="600" cy="450" rx="210" ry="290" fill="#f8fafc"/>
+  <ellipse cx="600" cy="450" rx="210" ry="290" fill="none" stroke="#cbd5e1" stroke-width="10"/>
+  <path d="M600 160v180" stroke="#94a3b8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M600 340c0 18-16 34-34 34s-34-16-34-34 16-34 34-34 34 16 34 34z" fill="#2563eb"/>
+  <path d="M520 380c18 0 34 16 34 34v128c0 20-16 36-34 36" fill="none" stroke="#1e293b" stroke-width="10"/>
+  <path d="M680 380c-18 0-34 16-34 34v128c0 20 16 36 34 36" fill="none" stroke="#1e293b" stroke-width="10"/>
+  <text x="215" y="140" fill="#e2e8f0" font-size="58" font-family="Arial, sans-serif" font-weight="700">G Pro X Superlight 2</text>
+  <text x="215" y="200" fill="#94a3b8" font-size="34" font-family="Arial, sans-serif">Mouse gamer ultraleve</text>
+</svg>

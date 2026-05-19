@@ -1,0 +1,22 @@
+{
+  "name": "gustech-backend",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "check": "node --check src/server.js",
+    "migrate:sql": "node src/scripts/print-schema.js",
+    "seed": "node -e \"import('./src/services/seedService.js').then(m=>m.ensureProductSeed({force:true,logger:console})).then(r=>{console.log(r);process.exit(0)}).catch(e=>{console.error(e);process.exit(1)})\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.11.3",
+    "zod": "^3.23.8"
+  }
+}

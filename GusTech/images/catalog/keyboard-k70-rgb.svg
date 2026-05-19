@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Teclado Mecanico K70 RGB Pro</title>
+  <desc id="desc">Ilustracao de um teclado mecanico RGB</desc>
+  <rect width="1200" height="900" fill="#08111f"/>
+  <g transform="translate(150 250)">
+    <rect width="900" height="340" rx="34" fill="#111827" stroke="#334155" stroke-width="8"/>
+    <g>
+      <rect x="45" y="45" width="96" height="72" rx="14" fill="#1d4ed8"/>
+      <rect x="157" y="45" width="96" height="72" rx="14" fill="#7c3aed"/>
+      <rect x="269" y="45" width="96" height="72" rx="14" fill="#ec4899"/>
+      <rect x="381" y="45" width="96" height="72" rx="14" fill="#f97316"/>
+      <rect x="493" y="45" width="96" height="72" rx="14" fill="#eab308"/>
+      <rect x="605" y="45" width="96" height="72" rx="14" fill="#22c55e"/>
+      <rect x="717" y="45" width="138" height="72" rx="14" fill="#06b6d4"/>
+    </g>
+    <g fill="#1f2937">
+      <rect x="45" y="135" width="72" height="72" rx="14"/>
+      <rect x="133" y="135" width="72" height="72" rx="14"/>
+      <rect x="221" y="135" width="72" height="72" rx="14"/>
+      <rect x="309" y="135" width="72" height="72" rx="14"/>
+      <rect x="397" y="135" width="72" height="72" rx="14"/>
+      <rect x="485" y="135" width="72" height="72" rx="14"/>
+      <rect x="573" y="135" width="72" height="72" rx="14"/>
+      <rect x="661" y="135" width="72" height="72" rx="14"/>
+      <rect x="749" y="135" width="106" height="72" rx="14"/>
+      <rect x="45" y="223" width="116" height="72" rx="14"/>
+      <rect x="177" y="223" width="72" height="72" rx="14"/>
+      <rect x="265" y="223" width="72" height="72" rx="14"/>
+      <rect x="353" y="223" width="72" height="72" rx="14"/>
+      <rect x="441" y="223" width="270" height="72" rx="14"/>
+      <rect x="727" y="223" width="128" height="72" rx="14"/>
+    </g>
+  </g>
+  <text x="170" y="150" fill="#e2e8f0" font-size="64" font-family="Arial, sans-serif" font-weight="700">K70 RGB Pro</text>
+  <text x="170" y="210" fill="#94a3b8" font-size="34" font-family="Arial, sans-serif">Teclado mecanico RGB</text>
+</svg>

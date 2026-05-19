@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Monitor Gamer 27 QHD 165Hz</title>
+  <desc id="desc">Ilustracao de um monitor gamer QHD</desc>
+  <defs>
+    <linearGradient id="screen" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="35%" stop-color="#2563eb"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="#0f172a"/>
+  <rect x="170" y="150" width="860" height="500" rx="28" fill="#020617" stroke="#334155" stroke-width="10"/>
+  <rect x="210" y="190" width="780" height="420" rx="14" fill="url(#screen)"/>
+  <path d="M520 650h160l55 90H465z" fill="#1e293b"/>
+  <rect x="430" y="738" width="340" height="38" rx="19" fill="#334155"/>
+  <text x="190" y="110" fill="#e2e8f0" font-size="62" font-family="Arial, sans-serif" font-weight="700">Monitor 27 QHD 165Hz</text>
+</svg>
