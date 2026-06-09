@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pedido confirmado | GusTech</title>
+  <link rel="icon" type="image/png" href="images/gustech-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +31,7 @@
         <a href="index.html" class="secondary-btn store-icon-btn" aria-label="Voltar para a pagina inicial"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="store-brand store-brand--compact" aria-label="GusTech"><img class="store-brand__logo" src="images/gustech-logo.png" alt="" width="36" height="36"><span class="store-brand__wordmark">GUS <span>TECH</span></span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
@@ -65,5 +66,6 @@
       badge.classList.add('scale-0');
     })();
   </script>
+  <script src="js/login-guard.js"></script>
 </body>
 </html>

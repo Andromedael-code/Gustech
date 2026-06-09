@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout | GusTech</title>
+  <link rel="icon" type="image/png" href="images/gustech-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,7 +26,7 @@
         <a href="carrinho.html" class="secondary-btn store-icon-btn" aria-label="Voltar para o carrinho"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="store-brand store-brand--compact" aria-label="GusTech"><img class="store-brand__logo" src="images/gustech-logo.png" alt="" width="36" height="36"><span class="store-brand__wordmark">GUS <span>TECH</span></span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
@@ -38,7 +39,7 @@
   <main class="page-container py-8 split-layout checkout-layout">
     <section class="surface-panel rounded-[32px] p-8">
       <div class="mini-meta uppercase tracking-[0.22em]">Etapa final</div>
-      <h2 class="text-3xl font-display font-bold mt-2">Confirme cliente, entrega e pagamento</h2>
+      <h2 class="text-3xl font-display font-bold mt-2">Confirme cliente, entrega e forma de pagamento</h2>
       <div class="checkout-progress mt-6" aria-label="Progresso do checkout">
         <span class="is-active"><i class="fas fa-user-check"></i> Cliente</span>
         <span class="is-active"><i class="fas fa-truck-fast"></i> Entrega</span>
@@ -59,7 +60,6 @@
             <option value="pix">Pix</option>
             <option value="credit_card">Cartao de credito</option>
             <option value="boleto">Boleto</option>
-            <option value="teste">Modo teste</option>
           </select>
           <p id="method-hint" class="mini-meta mt-2"></p>
         </div>
@@ -72,38 +72,18 @@
           </div>
         </div>
 
-        <div id="pix-block" class="checkout-online-block">
+        <div id="payment-instructions" class="checkout-online-block">
           <div class="checkout-qr" aria-hidden="true">
-            <i class="fas fa-qrcode"></i>
+            <i id="payment-method-icon" class="fas fa-qrcode"></i>
           </div>
           <div class="min-w-0">
-            <div class="mini-meta uppercase tracking-[0.16em]">Pix copia e cola</div>
-            <p id="pix-code" class="checkout-code mt-2"></p>
-            <div class="mt-3 flex flex-col sm:flex-row gap-2">
-              <button id="copy-pix-btn" class="secondary-btn" type="button"><i class="fas fa-copy"></i>Copiar Pix</button>
-              <button id="approve-pix-demo-btn" class="ghost-btn" type="button"><i class="fas fa-circle-check"></i>Confirmar Pix demo</button>
-            </div>
+            <div id="payment-method-title" class="mini-meta uppercase tracking-[0.16em]">Pix</div>
+            <p id="payment-method-copy" class="checkout-code mt-2"></p>
+            <p class="mini-meta mt-3">O pedido sera registrado como pendente ate a confirmacao do pagamento pela loja.</p>
           </div>
         </div>
 
-        <div id="card-block" class="hidden grid gap-4 md:grid-cols-2">
-          <input id="card-holder" class="store-input md:col-span-2" placeholder="Nome no cartao" aria-label="Nome no cartao">
-          <input id="card-number" class="store-input" placeholder="Numero do cartao" aria-label="Numero do cartao" inputmode="numeric" autocomplete="cc-number">
-          <input id="card-expiry" class="store-input" placeholder="Validade MM/AA" aria-label="Validade do cartao" inputmode="numeric" autocomplete="cc-exp">
-          <input id="card-cvv" class="store-input" placeholder="CVV" aria-label="Codigo de seguranca" inputmode="numeric" autocomplete="cc-csc">
-          <select id="installments" class="store-select" aria-label="Parcelas">
-            <option value="1">1x sem juros</option>
-            <option value="2">2x sem juros</option>
-            <option value="3">3x sem juros</option>
-          </select>
-        </div>
-
-        <div id="boleto-block" class="hidden checkout-online-block">
-          <input id="boleto-due" class="store-input" value="Vencimento em 3 dias apos emissao" aria-label="Vencimento do boleto" readonly>
-          <p id="boleto-code" class="checkout-code"></p>
-        </div>
-
-        <button class="primary-btn w-full" type="submit"><i class="fas fa-lock"></i>Criar pedido com seguranca</button>
+        <button class="primary-btn w-full" type="submit"><i class="fas fa-lock"></i>Criar pedido</button>
         <p id="checkout-feedback" class="mini-meta" role="alert"></p>
       </form>
     </section>
@@ -126,9 +106,9 @@
         <strong id="summary-total">R$ 0,00</strong>
       </div>
       <div class="checkout-security mt-6">
-        <div><i class="fas fa-shield-halved"></i><span>Cartao tokenizado no fluxo real</span></div>
+        <div><i class="fas fa-shield-halved"></i><span>Pagamento confirmado antes do envio</span></div>
         <div><i class="fas fa-receipt"></i><span>Pedido rastreavel no painel admin</span></div>
-        <div><i class="fas fa-lock"></i><span>Dados sensiveis nao ficam expostos</span></div>
+        <div><i class="fas fa-lock"></i><span>Nenhum dado de cartao e coletado pelo site</span></div>
       </div>
     </aside>
   </main>
@@ -137,5 +117,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="js/api.js"></script>
   <script type="module" src="js/checkout-page.js"></script>
+  <script src="js/login-guard.js"></script>
 </body>
 </html>

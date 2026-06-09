@@ -21,18 +21,18 @@
     const headers = { 'Content-Type': 'application/json', ...(existingHeaders || {}) };
     const user = await resolveAuthUser();
     const storedRole = localStorage.getItem('gustech_user_role') || 'user';
-    const storedEmail = String(localStorage.getItem('gustech_session_email') || '').toLowerCase();
 
-    if (user) {
-      if (!headers.Authorization) headers.Authorization = `Bearer ${await user.getIdToken()}`;
-      headers['x-user-id'] = user.uid;
-      headers['x-user-email'] = String(user.email || '').toLowerCase();
-      headers['x-user-role'] = storedRole;
-      if (user.email) localStorage.setItem('gustech_session_email', String(user.email).toLowerCase());
-    } else if (storedEmail) {
-      headers['x-user-id'] = storedEmail.replace(/[^a-z0-9]/gi, '-');
-      headers['x-user-email'] = storedEmail;
-      headers['x-user-role'] = storedRole;
+    if (user && !user.isAnonymous) {
+      try {
+        if (!headers.Authorization) headers.Authorization = `Bearer ${await user.getIdToken()}`;
+        headers['x-user-id'] = user.uid;
+        headers['x-user-email'] = String(user.email || '').toLowerCase();
+        headers['x-user-role'] = storedRole;
+        if (user.email) localStorage.setItem('gustech_session_email', String(user.email).toLowerCase());
+      } catch {
+        await window.firebase?.auth?.().signOut().catch(() => {});
+        localStorage.removeItem('gustech_local_cart');
+      }
     }
 
     return headers;

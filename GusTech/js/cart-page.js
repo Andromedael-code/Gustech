@@ -1,4 +1,4 @@
-import { currency, deleteCartItem, escapeHtml, loadCart, qsa, qs, saveCheckoutSelection, toast, updateCartItem } from './storefront-core.js';
+import { currency, deleteCartItem, escapeHtml, loadCart, qsa, qs, requireLoggedIn, saveCheckoutSelection, toast, updateCartItem } from './storefront-core.js';
 
 const state = { items: [], selected: new Set() };
 
@@ -98,6 +98,22 @@ function renderCart() {
 }
 
 async function bootstrap() {
+  const user = await requireLoggedIn('carrinho.html');
+  if (!user) {
+    const list = qs('#cart-list');
+    if (list) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <h2 class="text-2xl font-display font-bold mb-2">Entre para acessar o carrinho</h2>
+          <p class="text-gray-400">Seu carrinho, endereço e checkout ficam protegidos pela sua conta.</p>
+          <button class="primary-btn mt-4" type="button" onclick="window.location.href='conta.html?next=carrinho.html'">Entrar ou criar conta</button>
+        </div>
+      `;
+    }
+    updateSummary();
+    return;
+  }
+
   state.items = await loadCart();
   state.selected = new Set(state.items.map((item) => item.docId));
   renderCart();

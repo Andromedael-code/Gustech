@@ -1,10 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GusTech: e-commerce gamer com catálogo moderno, compra segura, wishlist, carrinho e checkout profissional.">
+  <meta name="description" content="GusTech: e-commerce gamer com catÃ¡logo moderno, compra segura, wishlist, carrinho e checkout profissional.">
   <title>GusTech | Loja Gamer Premium</title>
+  <link rel="icon" type="image/png" href="images/gustech-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +32,7 @@
     <div class="page-container page-container--store py-2.5">
       <div class="store-header-shell">
         <a href="index.html" class="store-brand" aria-label="GusTech">
-          <span class="store-brand__badge"><i class="fas fa-gamepad"></i></span>
+          <img class="store-brand__logo" src="images/gustech-logo.png" alt="" width="36" height="36">
           <span class="store-brand__wordmark">GUS <span>TECH</span></span>
         </a>
 
@@ -66,7 +67,7 @@
       <div class="store-slider__controls">
         <button id="slider-prev-btn" class="secondary-btn" type="button" aria-label="Slide anterior"><i class="fas fa-chevron-left"></i></button>
         <div id="slider-dots" class="store-slider__dots"></div>
-        <button id="slider-next-btn" class="secondary-btn" type="button" aria-label="Próximo slide"><i class="fas fa-chevron-right"></i></button>
+        <button id="slider-next-btn" class="secondary-btn" type="button" aria-label="PrÃ³ximo slide"><i class="fas fa-chevron-right"></i></button>
       </div>
     </section>
 
@@ -76,38 +77,38 @@
           <select id="category-select" class="store-select" aria-label="Categoria">
             <option value="">Todas as categorias</option>
           </select>
-          <input id="price-min" class="store-input" type="number" min="0" placeholder="Preço mínimo" aria-label="Preco minimo">
-          <input id="price-max" class="store-input" type="number" min="0" placeholder="Preço máximo" aria-label="Preco maximo">
+          <input id="price-min" class="store-input" type="number" min="0" placeholder="PreÃ§o mÃ­nimo" aria-label="Preco minimo">
+          <input id="price-max" class="store-input" type="number" min="0" placeholder="PreÃ§o mÃ¡ximo" aria-label="Preco maximo">
           <select id="sort-select" class="store-select" aria-label="Ordenacao">
             <option value="relevance">Mais relevantes</option>
             <option value="top_rated">Melhor avaliados</option>
             <option value="best_sellers">Mais vendidos</option>
-            <option value="price_asc">Menor preço</option>
-            <option value="price_desc">Maior preço</option>
+            <option value="price_asc">Menor preÃ§o</option>
+            <option value="price_desc">Maior preÃ§o</option>
             <option value="newest">Mais novos</option>
           </select>
         </div>
 
         <div class="catalog-toolbar catalog-toolbar--vitrine">
           <div>
-            <div class="mini-meta uppercase tracking-[0.18em]">Catálogo</div>
+            <div class="mini-meta uppercase tracking-[0.18em]">CatÃ¡logo</div>
             <h2 class="text-3xl font-display font-bold mt-2">Vitrine principal</h2>
           </div>
-          <div id="catalog-count" class="status-pill status-pill--info">Carregando catálogo...</div>
+          <div id="catalog-count" class="status-pill status-pill--info">Carregando catÃ¡logo...</div>
         </div>
 
         <div class="pagination-bar pagination-bar--catalog">
           <button class="secondary-btn pagination-nav-btn" type="button" data-catalog-prev-btn>Anterior</button>
-          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando página...</div>
-          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>Próxima</button>
+          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando pÃ¡gina...</div>
+          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>PrÃ³xima</button>
         </div>
 
         <div id="products-grid" class="product-grid product-grid--compact"></div>
 
         <div class="pagination-bar pagination-bar--catalog pagination-bar--catalog-bottom">
           <button class="secondary-btn pagination-nav-btn" type="button" data-catalog-prev-btn>Anterior</button>
-          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando página...</div>
-          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>Próxima</button>
+          <div class="mini-meta pagination-bar__info" data-catalog-pagination-info>Carregando pÃ¡gina...</div>
+          <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-catalog-next-btn>PrÃ³xima</button>
         </div>
       </div>
     </section>
@@ -118,10 +119,10 @@
       <div class="store-footer__grid">
         <section class="store-footer__brand">
           <a href="index.html" class="store-brand store-footer__logo" aria-label="GusTech">
-            <span class="store-brand__badge"><i class="fas fa-gamepad"></i></span>
+            <img class="store-brand__logo" src="images/gustech-logo.png" alt="" width="36" height="36">
             <span class="store-brand__wordmark">GUS <span>TECH</span></span>
           </a>
-          <p class="store-footer__text">Sua loja especializada em realizar sonhos gamers. Segurança, qualidade e paixão em cada entrega.</p>
+          <p class="store-footer__text">Sua loja especializada em realizar sonhos gamers. SeguranÃ§a, qualidade e paixÃ£o em cada entrega.</p>
           <div class="store-footer__socials">
             <a class="store-footer__social" href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
               <i class="fab fa-instagram"></i>
@@ -133,9 +134,9 @@
         </section>
 
         <section>
-          <h3 class="store-footer__title">Links úteis</h3>
+          <h3 class="store-footer__title">Links Ãºteis</h3>
           <nav class="store-footer__links">
-            <a href="politica-de-privacidade.html"><i class="fas fa-chevron-right"></i>Política de Privacidade</a>
+            <a href="politica-de-privacidade.html"><i class="fas fa-chevron-right"></i>PolÃ­tica de Privacidade</a>
             <a href="termos-e-condicoes.html"><i class="fas fa-chevron-right"></i>Termos de Uso</a>
           </nav>
         </section>
@@ -165,5 +166,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="js/api.js"></script>
   <script type="module" src="js/catalog-page.js"></script>
+  <script src="js/login-guard.js"></script>
 </body>
 </html>

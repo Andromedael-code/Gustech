@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Conta | GusTech</title>
+  <link rel="icon" type="image/png" href="images/gustech-logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,7 +33,7 @@
         <a href="index.html" class="secondary-btn store-icon-btn" aria-label="Voltar para a pagina inicial"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="store-brand store-brand--compact" aria-label="GusTech"><img class="store-brand__logo" src="images/gustech-logo.png" alt="" width="36" height="36"><span class="store-brand__wordmark">GUS <span>TECH</span></span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
@@ -124,7 +125,7 @@
             <form id="profile-form" class="account-form-grid mt-6">
               <div class="account-inline-field full-span">
                 <div class="account-inline-field__header">
-                  <label for="profile-username" class="mini-meta uppercase tracking-[0.14em]">Nome de Usuário</label>
+                  <label for="profile-username" class="mini-meta uppercase tracking-[0.14em]">Nome de UsuÃ¡rio</label>
                 </div>
                 <div class="account-inline-input">
                   <input required id="profile-username" placeholder="Nome de usuario" class="store-input store-input--locked" readonly aria-readonly="true">
@@ -152,17 +153,17 @@
                   </button>
                 </div>
                 <div class="account-inline-field__actions">
-                  <button id="save-phone-btn" class="primary-btn !py-2 !px-3 hidden" type="button">Salvar número</button>
+                  <button id="save-phone-btn" class="primary-btn !py-2 !px-3 hidden" type="button">Salvar nÃºmero</button>
                 </div>
-                <p id="phone-verification-status" class="mini-meta mt-3">Seu celular atual ainda não foi confirmado por SMS.</p>
+                <p id="phone-verification-status" class="mini-meta mt-3">Seu celular atual ainda nÃ£o foi confirmado por SMS.</p>
               </div>
 
               <div id="phone-verification-panel" class="surface-panel rounded-[24px] p-4 md:p-5 full-span hidden">
-                <div class="mini-meta uppercase tracking-[0.14em]">Confirmação por SMS</div>
-                <p id="phone-verification-message" class="mt-2 text-sm text-slate-300">Enviamos um código para o novo número. Digite abaixo para concluir a troca.</p>
+                <div class="mini-meta uppercase tracking-[0.14em]">ConfirmaÃ§Ã£o por SMS</div>
+                <p id="phone-verification-message" class="mt-2 text-sm text-slate-300">Enviamos um cÃ³digo para o novo nÃºmero. Digite abaixo para concluir a troca.</p>
                 <div class="account-phone-verify-grid mt-4">
-                  <input id="phone-verification-code" class="store-input" inputmode="numeric" placeholder="Código recebido por SMS" aria-label="Codigo recebido por SMS">
-                  <button id="confirm-phone-code-btn" class="primary-btn" type="button">Confirmar código</button>
+                  <input id="phone-verification-code" class="store-input" inputmode="numeric" placeholder="CÃ³digo recebido por SMS" aria-label="Codigo recebido por SMS">
+                  <button id="confirm-phone-code-btn" class="primary-btn" type="button">Confirmar cÃ³digo</button>
                 </div>
               </div>
 
@@ -229,5 +230,6 @@
   <script src="js/api.js"></script>
   <script src="js/api-compat.js"></script>
   <script type="module" src="js/account-page.js"></script>
+  <script src="js/login-guard.js"></script>
 </body>
 </html>

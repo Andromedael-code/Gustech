@@ -43,15 +43,16 @@
   color: #fff;
 }
 
-.store-brand__badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, #2563eb, #60a5fa);
-  color: white;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
+.store-brand--compact {
+  justify-content: center;
+}
+
+.store-brand__logo {
+  width: 2.25rem;
+  height: 2.25rem;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(37, 99, 235, 0.38));
+  flex: 0 0 auto;
 }
 
 .store-brand__wordmark {
@@ -64,6 +65,79 @@
 
 .store-brand__wordmark span {
   color: #3b82f6;
+}
+
+.login-required-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.login-required-modal.hidden {
+  display: none;
+}
+
+.login-required-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.login-required-modal__panel {
+  position: relative;
+  width: min(100%, 440px);
+  border-radius: 28px;
+  padding: 2rem;
+  border: 1px solid rgba(96, 165, 250, 0.28);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.92));
+  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.45);
+}
+
+.login-required-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.72);
+  color: var(--text);
+}
+
+.login-required-modal__icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 1.2rem;
+  display: grid;
+  place-items: center;
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.16);
+  border: 1px solid rgba(96, 165, 250, 0.24);
+}
+
+.login-required-modal__panel h2 {
+  margin-top: 1rem;
+  font-family: var(--font-display, 'Oxanium', sans-serif);
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.login-required-modal__panel p {
+  margin-top: 0.75rem;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.login-required-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .store-header-search {
