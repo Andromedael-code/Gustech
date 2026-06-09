@@ -39,7 +39,7 @@ export const env = {
   },
   adminAllowlist: splitList(process.env.ADMIN_ALLOWLIST).map((item) => item.toLowerCase()),
   firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID || ''
+    projectId: process.env.FIREBASE_PROJECT_ID || 'gustavo-gaymer-loja'
   },
   sms: {
     defaultCountryCode: String(process.env.SMS_DEFAULT_COUNTRY_CODE || '55').replace(/\D/g, '') || '55',

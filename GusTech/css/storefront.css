@@ -1187,6 +1187,14 @@ html.light .chip--link:hover {
   grid-template-columns: 1fr;
 }
 
+#account-main.account-main--auth {
+  width: min(940px, calc(100vw - 2rem));
+}
+
+#account-main.account-main--auth #account-panel-shell {
+  padding: clamp(1.5rem, 3vw, 2rem);
+}
+
 .account-layout-shell--logged {
   grid-template-columns: minmax(300px, 0.7fr) minmax(0, 1.3fr);
 }
@@ -1231,6 +1239,16 @@ html.light .chip--link:hover {
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+#account-main.account-main--auth .account-section__header {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 720px;
+}
+
+#account-main.account-main--auth .account-section__header p {
+  max-width: 560px;
 }
 
 .account-form-grid {

@@ -18,6 +18,62 @@ const state = {
 
 const $ = qs;
 const onlyDigits = (value = '') => String(value || '').replace(/\D/g, '');
+const SESSION_EXPIRED_MESSAGE = 'Sua sessao expirou. Entre novamente para continuar.';
+
+function parseMaybeJson(value) {
+  if (!value || typeof value !== 'string') return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function getErrorCode(error) {
+  const parsed = parseMaybeJson(error?.message);
+  return String(parsed?.error?.message || error?.code || error?.message || '').toUpperCase();
+}
+
+function friendlyAccountError(error, fallback = 'Nao foi possivel concluir a acao. Tente novamente.') {
+  const code = getErrorCode(error);
+
+  if (/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|WRONG_PASSWORD|WRONG-PASSWORD|EMAIL_NOT_FOUND|USER_NOT_FOUND|USER-NOT-FOUND|INVALID_CREDENTIAL|INVALID-CREDENTIAL/.test(code)) {
+    return 'E-mail ou senha incorretos. Verifique os dados e tente novamente.';
+  }
+
+  if (/INVALID_EMAIL|INVALID-EMAIL/.test(code)) {
+    return 'Informe um e-mail valido.';
+  }
+
+  if (/EMAIL_EXISTS|EMAIL_ALREADY_IN_USE|EMAIL-ALREADY-IN-USE/.test(code)) {
+    return 'Este e-mail ja esta cadastrado. Entre na conta ou use outro e-mail.';
+  }
+
+  if (/WEAK_PASSWORD|WEAK-PASSWORD/.test(code)) {
+    return 'Use uma senha com pelo menos 6 caracteres.';
+  }
+
+  if (/TOO_MANY_ATTEMPTS|TOO_MANY_REQUESTS|TOO-MANY-REQUESTS/.test(code)) {
+    return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+  }
+
+  if (/NETWORK_REQUEST_FAILED|NETWORK-REQUEST-FAILED|NAO FOI POSSIVEL SE CONECTAR/.test(code)) {
+    return 'Nao foi possivel se conectar ao servidor. Confira sua conexao e tente novamente.';
+  }
+
+  if (/TOKEN|JWT|AUTHENTICACAO|AUTENTICACAO|UNAUTH|SESSION/.test(code) || error?.status === 401) {
+    return SESSION_EXPIRED_MESSAGE;
+  }
+
+  return String(error?.message || '').trim() || fallback;
+}
+
+async function clearInvalidSession() {
+  localStorage.removeItem('gustech_user_role');
+  localStorage.removeItem('gustech_session_email');
+  localStorage.removeItem('gustech_local_cart');
+  await auth.signOut().catch(() => {});
+}
 
 function safeNextPage(value = '') {
   const fallback = 'conta.html';
@@ -157,6 +213,7 @@ function applyAuthLayout(isLoggedIn) {
   $('#tab-account')?.classList.toggle('hidden', !isLoggedIn);
   $('#logout-btn')?.classList.toggle('hidden', !isLoggedIn);
   document.getElementById('account-layout')?.classList.toggle('account-layout-shell--logged', isLoggedIn);
+  document.getElementById('account-main')?.classList.toggle('account-main--auth', !isLoggedIn);
 }
 
 function ensureAddressIds(addresses = []) {
@@ -473,7 +530,12 @@ async function loadAccountData() {
     state.currentAddresses = ensureAddressIds(me.addresses || []);
     state.phoneVerificationEnabled = Boolean(me.phoneVerification?.enabled || me.phoneVerification?.mock);
     state.phoneVerificationMock = Boolean(me.phoneVerification?.mock);
-  } catch {
+  } catch (error) {
+    if (error?.status === 401 || /sessao|token|autenticacao|auth/i.test(error?.message || error?.rawMessage || '')) {
+      await clearInvalidSession();
+      throw new Error(SESSION_EXPIRED_MESSAGE);
+    }
+
     const fallback = db ? await db.collection('users').doc(state.currentUser.uid).get() : null;
     data = fallback?.exists ? fallback.data() : {};
     state.currentAddresses = ensureAddressIds(data.addresses || []);
@@ -493,11 +555,16 @@ async function handleLogin(event) {
     const email = $('#login-email').value.trim();
     const password = $('#login-password').value;
     await auth.signInWithEmailAndPassword(email, password);
+    await auth.currentUser?.getIdToken(true);
+    await api('/users/me', { timeoutMs: 8_000 });
     localStorage.setItem('gustech_session_email', email.toLowerCase());
     setFeedback('Login realizado com sucesso.');
     setTimeout(() => { window.location.href = state.nextPage; }, 600);
   } catch (error) {
-    setFeedback(error.message || 'Falha no login.', 'error');
+    if (error?.status === 401 || /TOKEN|JWT|AUTHENTICACAO|AUTENTICACAO|SESSION/.test(getErrorCode(error))) {
+      await clearInvalidSession();
+    }
+    setFeedback(friendlyAccountError(error, 'Nao foi possivel entrar. Confira seus dados e tente novamente.'), 'error');
   }
 }
 
@@ -528,7 +595,7 @@ async function handleSignup(event) {
     setFeedback('Conta criada com sucesso.');
     setTimeout(() => { window.location.href = state.nextPage; }, 600);
   } catch (error) {
-    setFeedback(error.message || 'Falha ao criar conta.', 'error');
+    setFeedback(friendlyAccountError(error, 'Nao foi possivel criar a conta. Revise os dados e tente novamente.'), 'error');
   }
 }
 
@@ -551,7 +618,7 @@ async function handleProfileSave(event) {
     syncPhoneVerificationUi('Dados pessoais atualizados com sucesso.', 'ok');
     setFeedback('Dados pessoais atualizados com sucesso.');
   } catch (error) {
-    setFeedback(error.message || 'Nao foi possivel salvar o perfil.', 'error');
+    setFeedback(friendlyAccountError(error, 'Nao foi possivel salvar o perfil.'), 'error');
   }
 }
 
@@ -573,8 +640,9 @@ async function handleStartPhoneVerification() {
     setFeedback(response.message || 'Codigo enviado por SMS.');
     $('#phone-verification-code')?.focus();
   } catch (error) {
-    syncPhoneVerificationUi(error.message || 'Nao foi possivel enviar o codigo por SMS.', 'error');
-    setFeedback(error.message || 'Nao foi possivel enviar o codigo por SMS.', 'error');
+    const message = friendlyAccountError(error, 'Nao foi possivel enviar o codigo por SMS.');
+    syncPhoneVerificationUi(message, 'error');
+    setFeedback(message, 'error');
   }
 }
 
@@ -603,8 +671,9 @@ async function handleConfirmPhoneVerification() {
     syncPhoneVerificationUi(response.message || 'Celular confirmado por SMS.', 'ok');
     setFeedback(response.message || 'Celular confirmado por SMS.');
   } catch (error) {
-    syncPhoneVerificationUi(error.message || 'Nao foi possivel confirmar o celular.', 'error');
-    setFeedback(error.message || 'Nao foi possivel confirmar o celular.', 'error');
+    const message = friendlyAccountError(error, 'Nao foi possivel confirmar o celular.');
+    syncPhoneVerificationUi(message, 'error');
+    setFeedback(message, 'error');
   }
 }
 
@@ -638,7 +707,7 @@ async function handleAddressSave(event) {
     clearAddressForm();
     setFeedback('Endereco salvo com sucesso.');
   } catch (error) {
-    setFeedback(error.message || 'Nao foi possivel salvar o endereco.', 'error');
+    setFeedback(friendlyAccountError(error, 'Nao foi possivel salvar o endereco.'), 'error');
   }
 }
 
@@ -732,8 +801,9 @@ function bootstrap() {
       await loadAccountData();
       handleFocusParam();
     } catch (error) {
-      setFeedback(error.message || 'Nao foi possivel carregar sua conta.', 'error');
-      toast(error.message || 'Falha ao carregar dados da conta.', 'error');
+      const message = friendlyAccountError(error, 'Nao foi possivel carregar sua conta.');
+      setFeedback(message, 'error');
+      toast(message, 'error');
     }
   });
 }

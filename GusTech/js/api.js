@@ -23,6 +23,35 @@ function createRequestController(externalSignal, timeoutMs = 12_000) {
   };
 }
 
+function parseMaybeJson(value) {
+  if (!value || typeof value !== 'string') return null;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function friendlyApiMessage(message, status) {
+  const raw = String(message || '').trim();
+  const parsed = parseMaybeJson(raw);
+  const code = String(parsed?.error?.message || parsed?.code || raw).toUpperCase();
+
+  if (status === 401 || /TOKEN|JWT|AUTHENTICACAO|AUTENTICACAO|UNAUTH|INVALID_SESSION/.test(code)) {
+    return 'Sua sessao expirou. Entre novamente para continuar.';
+  }
+
+  if (/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|USER_NOT_FOUND|INVALID_CREDENTIAL/.test(code)) {
+    return 'E-mail ou senha incorretos. Verifique os dados e tente novamente.';
+  }
+
+  if (/TOO_MANY_ATTEMPTS|TOO_MANY_REQUESTS/.test(code)) {
+    return 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.';
+  }
+
+  return raw || 'Nao foi possivel concluir a solicitacao.';
+}
+
 async function resolveAuthUser() {
   const auth = window.firebase?.auth?.();
   if (!auth) return null;
@@ -69,7 +98,12 @@ window.gustechApi = {
     try {
       const response = await fetch(`${window.GUSTECH_API_URL}${path}`, { ...options, headers, signal });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || 'Erro na API.');
+      if (!response.ok) {
+        const error = new Error(friendlyApiMessage(data.error || 'Erro na API.', response.status));
+        error.status = response.status;
+        error.rawMessage = data.error || '';
+        throw error;
+      }
       return data;
     } catch (error) {
       if (error?.name === 'AbortError') {
