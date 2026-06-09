@@ -1,5 +1,6 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env.js';
@@ -19,6 +20,12 @@ import utilsRouter from './routes/utils.js';
 import wishlistRouter from './routes/wishlist.js';
 
 const app = express();
+let initializationPromise = null;
+
+export function ensureInitialized() {
+  initializationPromise ||= initializeApplication();
+  return initializationPromise;
+}
 
 app.disable('x-powered-by');
 app.disable('etag');
@@ -35,6 +42,14 @@ app.use('/uploads', express.static(fileURLToPath(new URL('../uploads/', import.m
   immutable: true
 }));
 app.use(httpLogger);
+app.use(async (_req, _res, next) => {
+  try {
+    await ensureInitialized();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 app.use((req, res, next) => {
   if (req.path === '/api/products/upload-image') return next();
   return express.json({ limit: '1mb' })(req, res, next);
@@ -45,7 +60,7 @@ app.use('/api', (_req, res, next) => {
 });
 app.use('/api', apiRateLimit);
 
-app.get('/health', async (_req, res, next) => {
+async function healthHandler(_req, res, next) {
   try {
     const start = Date.now(); // feat: FUNC-2
     await getPool().query('SELECT 1');
@@ -61,7 +76,10 @@ app.get('/health', async (_req, res, next) => {
   } catch (error) {
     next(error);
   }
-});
+}
+
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
 
 app.use('/api/users', usersRouter);
 app.use('/api/orders', ordersRouter);
@@ -75,22 +93,31 @@ app.use('/api/seed', seedRouter);
 app.use(notFound);
 app.use(errorHandler);
 
-initializeApplication()
-  .then(() => {
-    const server = app.listen(env.port, () => {
-      logger.info({ port: env.port }, 'GusTech backend iniciado');
-    });
+export async function startServer() {
+  await ensureInitialized();
+  const server = app.listen(env.port, () => {
+    logger.info({ port: env.port }, 'GusTech backend iniciado');
+  });
 
-    server.on('error', (error) => {
-      if (error?.code === 'EADDRINUSE') {
-        logger.error({ port: env.port }, 'Porta do backend ja esta em uso. Encerre o processo antigo ou altere PORT no .env.');
-        process.exit(1);
-      }
-      logger.error({ err: error }, 'Falha no servidor HTTP');
+  server.on('error', (error) => {
+    if (error?.code === 'EADDRINUSE') {
+      logger.error({ port: env.port }, 'Porta do backend ja esta em uso. Encerre o processo antigo ou altere PORT no .env.');
       process.exit(1);
-    });
-  })
-  .catch((error) => {
+    }
+    logger.error({ err: error }, 'Falha no servidor HTTP');
+    process.exit(1);
+  });
+
+  return server;
+}
+
+const executedFile = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (fileURLToPath(import.meta.url) === executedFile) {
+  startServer().catch((error) => {
     logger.error({ err: error }, 'Falha ao inicializar a aplicacao');
     process.exit(1);
   });
+}
+
+export { app };
+export default app;

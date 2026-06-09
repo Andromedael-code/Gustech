@@ -35,10 +35,15 @@
     </div>
   </header>
 
-  <main class="page-container py-8 split-layout">
+  <main class="page-container py-8 split-layout checkout-layout">
     <section class="surface-panel rounded-[32px] p-8">
       <div class="mini-meta uppercase tracking-[0.22em]">Etapa final</div>
       <h2 class="text-3xl font-display font-bold mt-2">Confirme cliente, entrega e pagamento</h2>
+      <div class="checkout-progress mt-6" aria-label="Progresso do checkout">
+        <span class="is-active"><i class="fas fa-user-check"></i> Cliente</span>
+        <span class="is-active"><i class="fas fa-truck-fast"></i> Entrega</span>
+        <span class="is-active"><i class="fas fa-shield-halved"></i> Pagamento</span>
+      </div>
       <div id="customer-preview" class="surface-panel rounded-[24px] p-5 mt-6"></div>
 
       <form id="checkout-form" class="space-y-5 mt-6">
@@ -59,9 +64,33 @@
           <p id="method-hint" class="mini-meta mt-2"></p>
         </div>
 
+        <div id="payment-status-panel" class="checkout-payment-panel">
+          <div class="checkout-payment-panel__icon"><i class="fas fa-lock"></i></div>
+          <div>
+            <strong id="payment-status-title">Pagamento protegido</strong>
+            <p id="payment-status-copy">Escolha uma forma de pagamento para gerar os detalhes da transacao.</p>
+          </div>
+        </div>
+
+        <div id="pix-block" class="checkout-online-block">
+          <div class="checkout-qr" aria-hidden="true">
+            <i class="fas fa-qrcode"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="mini-meta uppercase tracking-[0.16em]">Pix copia e cola</div>
+            <p id="pix-code" class="checkout-code mt-2"></p>
+            <div class="mt-3 flex flex-col sm:flex-row gap-2">
+              <button id="copy-pix-btn" class="secondary-btn" type="button"><i class="fas fa-copy"></i>Copiar Pix</button>
+              <button id="approve-pix-demo-btn" class="ghost-btn" type="button"><i class="fas fa-circle-check"></i>Confirmar Pix demo</button>
+            </div>
+          </div>
+        </div>
+
         <div id="card-block" class="hidden grid gap-4 md:grid-cols-2">
           <input id="card-holder" class="store-input md:col-span-2" placeholder="Nome no cartao" aria-label="Nome no cartao">
-          <input id="card-number" class="store-input" placeholder="Numero do cartao" aria-label="Numero do cartao">
+          <input id="card-number" class="store-input" placeholder="Numero do cartao" aria-label="Numero do cartao" inputmode="numeric" autocomplete="cc-number">
+          <input id="card-expiry" class="store-input" placeholder="Validade MM/AA" aria-label="Validade do cartao" inputmode="numeric" autocomplete="cc-exp">
+          <input id="card-cvv" class="store-input" placeholder="CVV" aria-label="Codigo de seguranca" inputmode="numeric" autocomplete="cc-csc">
           <select id="installments" class="store-select" aria-label="Parcelas">
             <option value="1">1x sem juros</option>
             <option value="2">2x sem juros</option>
@@ -69,8 +98,9 @@
           </select>
         </div>
 
-        <div id="boleto-block" class="hidden">
+        <div id="boleto-block" class="hidden checkout-online-block">
           <input id="boleto-due" class="store-input" value="Vencimento em 3 dias apos emissao" aria-label="Vencimento do boleto" readonly>
+          <p id="boleto-code" class="checkout-code"></p>
         </div>
 
         <button class="primary-btn w-full" type="submit"><i class="fas fa-lock"></i>Criar pedido com seguranca</button>
@@ -81,9 +111,24 @@
     <aside class="surface-panel rounded-[32px] p-6 h-fit lg:sticky lg:top-28">
       <div class="mini-meta uppercase tracking-[0.22em]">Resumo final</div>
       <div id="summary-items" class="space-y-3 mt-5"></div>
+      <div class="border-t border-white/10 mt-6 pt-6 space-y-3">
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <strong id="summary-subtotal">R$ 0,00</strong>
+        </div>
+        <div class="summary-line">
+          <span>Frete</span>
+          <strong id="summary-shipping">Gratis</strong>
+        </div>
+      </div>
       <div class="border-t border-white/10 mt-6 pt-6 summary-line text-lg">
         <span>Total</span>
         <strong id="summary-total">R$ 0,00</strong>
+      </div>
+      <div class="checkout-security mt-6">
+        <div><i class="fas fa-shield-halved"></i><span>Cartao tokenizado no fluxo real</span></div>
+        <div><i class="fas fa-receipt"></i><span>Pedido rastreavel no painel admin</span></div>
+        <div><i class="fas fa-lock"></i><span>Dados sensiveis nao ficam expostos</span></div>
       </div>
     </aside>
   </main>

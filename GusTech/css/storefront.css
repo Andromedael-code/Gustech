@@ -1795,6 +1795,157 @@ html.light .admin-table tbody tr:hover {
 .empty-state, .feedback-card { border-radius: 24px; padding: 2rem; text-align: center; border: 1px dashed var(--line-strong); background: rgba(15, 23, 42, 0.45); }
 .mini-meta { font-size: 0.78rem; color: var(--muted); }
 
+.checkout-layout {
+  align-items: start;
+}
+
+.checkout-progress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.checkout-progress span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(15, 23, 42, 0.45);
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.checkout-progress span.is-active {
+  border-color: rgba(96, 165, 250, 0.38);
+  background: rgba(37, 99, 235, 0.16);
+  color: #dbeafe;
+}
+
+.checkout-payment-panel,
+.checkout-online-block,
+.checkout-security {
+  border: 1px solid var(--line);
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.checkout-payment-panel {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  border-radius: 22px;
+  padding: 1rem;
+}
+
+.checkout-payment-panel__icon {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.35), rgba(96, 165, 250, 0.16));
+  color: #bfdbfe;
+}
+
+.checkout-payment-panel strong {
+  display: block;
+  color: var(--text);
+}
+
+.checkout-payment-panel p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.checkout-online-block {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  border-radius: 24px;
+  padding: 1rem;
+}
+
+.checkout-online-block.hidden {
+  display: none;
+}
+
+.checkout-qr {
+  display: grid;
+  place-items: center;
+  width: 128px;
+  height: 128px;
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 50%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.16) 50%, transparent 50%),
+    linear-gradient(135deg, rgba(37, 99, 235, 0.28), rgba(15, 23, 42, 0.6));
+  background-size: 18px 18px, 18px 18px, auto;
+  color: #dbeafe;
+  font-size: 2rem;
+}
+
+.checkout-code {
+  max-height: 8rem;
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px dashed var(--line-strong);
+  background: rgba(2, 6, 23, 0.36);
+  padding: 0.9rem;
+  color: var(--text-soft);
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  word-break: break-all;
+}
+
+.checkout-security {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: 22px;
+  padding: 1rem;
+}
+
+.checkout-security div {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+.checkout-security i {
+  color: #60a5fa;
+}
+
+html.light .checkout-progress span,
+html.light .checkout-payment-panel,
+html.light .checkout-online-block,
+html.light .checkout-security {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+html.light .checkout-progress span.is-active {
+  background: rgba(219, 234, 254, 0.86);
+  color: #1d4ed8;
+}
+
+html.light .checkout-code {
+  background: rgba(248, 250, 252, 0.96);
+  color: #102033;
+}
+
+html.light .checkout-payment-panel p,
+html.light .checkout-security div {
+  color: #4f6480;
+}
+
 html.light .empty-state,
 html.light .feedback-card {
   background: rgba(255,255,255,0.82);

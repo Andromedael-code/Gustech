@@ -77,10 +77,12 @@ export async function createOrderForUser(uid, email, payload) {
   const total = trustedItems.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity), 0);
   if (total <= 0) throw new AppError(400, 'Carrinho invalido.');
   await ensureStockForItems(trustedItems);
+  const paymentStatus = String(data.paymentDetails?.status || '').toLowerCase();
+  const initialStatus = paymentStatus === 'approved' || data.method === 'teste' ? 'paid' : 'pending';
 
   const order = {
     userId: uid,
-    status: 'pending',
+    status: initialStatus,
     method: data.method,
     paymentDetails: data.paymentDetails,
     deliveryAddress: data.deliveryAddress,

@@ -1,4 +1,5 @@
-window.GUSTECH_API_URL = window.GUSTECH_API_URL || 'http://localhost:8080/api';
+const isLocalHost = ['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+window.GUSTECH_API_URL = window.GUSTECH_API_URL || (isLocalHost ? 'http://localhost:8080/api' : '/api');
 
 function createRequestController(externalSignal, timeoutMs = 12_000) {
   const controller = new AbortController();

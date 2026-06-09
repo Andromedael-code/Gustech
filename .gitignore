@@ -99,3 +99,5 @@ desktop.ini
 .openclaude/
 .openclaude-profile.json
 .codex-app.log
+
+.vercel
