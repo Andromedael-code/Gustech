@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS products (
   gallery_json JSON NULL,
   highlights_json JSON NULL,
   specs_json JSON NULL,
+  variants_json JSON NULL,
   price DECIMAL(10,2) NOT NULL DEFAULT 0,
   old_price DECIMAL(10,2) NOT NULL DEFAULT 0,
   stock INT NOT NULL DEFAULT 0,
@@ -167,15 +168,137 @@ CREATE TABLE IF NOT EXISTS products (
   UNIQUE KEY uq_products_slug (slug),
   KEY idx_products_category (category, is_active),
   KEY idx_products_relevance (relevance_score DESC, sales DESC),
-  KEY idx_products_rating (rating DESC, reviews_count DESC)
+  KEY idx_products_rating (rating DESC, reviews_count DESC),
+  FULLTEXT KEY ft_products_search (name, description, brand, category) -- fix: CODE-3
 );
 
-ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(80) NULL;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS badge VARCHAR(80) NULL;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS categories_json JSON NULL;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS gallery_json JSON NULL;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS highlights_json JSON NULL;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS specs_json JSON NULL;
+SET @has_products_brand := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'brand'
+);
+SET @sql_products_brand := IF(
+  @has_products_brand = 0,
+  'ALTER TABLE products ADD COLUMN brand VARCHAR(80) NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_brand FROM @sql_products_brand;
+EXECUTE stmt_products_brand;
+DEALLOCATE PREPARE stmt_products_brand;
+
+SET @has_products_badge := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'badge'
+);
+SET @sql_products_badge := IF(
+  @has_products_badge = 0,
+  'ALTER TABLE products ADD COLUMN badge VARCHAR(80) NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_badge FROM @sql_products_badge;
+EXECUTE stmt_products_badge;
+DEALLOCATE PREPARE stmt_products_badge;
+
+SET @has_products_categories_json := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'categories_json'
+);
+SET @sql_products_categories_json := IF(
+  @has_products_categories_json = 0,
+  'ALTER TABLE products ADD COLUMN categories_json JSON NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_categories_json FROM @sql_products_categories_json;
+EXECUTE stmt_products_categories_json;
+DEALLOCATE PREPARE stmt_products_categories_json;
+
+SET @has_products_gallery_json := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'gallery_json'
+);
+SET @sql_products_gallery_json := IF(
+  @has_products_gallery_json = 0,
+  'ALTER TABLE products ADD COLUMN gallery_json JSON NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_gallery_json FROM @sql_products_gallery_json;
+EXECUTE stmt_products_gallery_json;
+DEALLOCATE PREPARE stmt_products_gallery_json;
+
+SET @has_products_highlights_json := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'highlights_json'
+);
+SET @sql_products_highlights_json := IF(
+  @has_products_highlights_json = 0,
+  'ALTER TABLE products ADD COLUMN highlights_json JSON NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_highlights_json FROM @sql_products_highlights_json;
+EXECUTE stmt_products_highlights_json;
+DEALLOCATE PREPARE stmt_products_highlights_json;
+
+SET @has_products_specs_json := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'specs_json'
+);
+SET @sql_products_specs_json := IF(
+  @has_products_specs_json = 0,
+  'ALTER TABLE products ADD COLUMN specs_json JSON NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_specs_json FROM @sql_products_specs_json;
+EXECUTE stmt_products_specs_json;
+DEALLOCATE PREPARE stmt_products_specs_json;
+
+SET @has_products_variants_json := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND COLUMN_NAME = 'variants_json'
+);
+SET @sql_products_variants_json := IF(
+  @has_products_variants_json = 0,
+  'ALTER TABLE products ADD COLUMN variants_json JSON NULL',
+  'SELECT 1'
+);
+PREPARE stmt_products_variants_json FROM @sql_products_variants_json;
+EXECUTE stmt_products_variants_json;
+DEALLOCATE PREPARE stmt_products_variants_json;
+
+SET @has_products_search_index := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'products'
+    AND INDEX_NAME = 'ft_products_search'
+);
+SET @sql_products_search_index := IF(
+  @has_products_search_index = 0,
+  'ALTER TABLE products ADD FULLTEXT KEY ft_products_search (name, description, brand, category)',
+  'SELECT 1'
+); -- fix: CODE-3
+PREPARE stmt_products_search_index FROM @sql_products_search_index;
+EXECUTE stmt_products_search_index;
+DEALLOCATE PREPARE stmt_products_search_index;
 
 CREATE TABLE IF NOT EXISTS cart_items (
   id VARCHAR(80) PRIMARY KEY,
@@ -188,11 +311,57 @@ CREATE TABLE IF NOT EXISTS cart_items (
   quantity INT NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL,
   updated_at DATETIME NOT NULL,
+  UNIQUE KEY uq_cart_user_product (user_id, product_id),
   KEY idx_cart_user (user_id, created_at DESC),
   KEY idx_cart_product (product_id),
   CONSTRAINT fk_cart_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_cart_product FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL
 );
+
+UPDATE cart_items ci
+JOIN (
+  SELECT *
+  FROM (
+    SELECT MIN(id) AS keep_id, user_id, product_id, SUM(quantity) AS total_quantity
+    FROM cart_items
+    WHERE product_id IS NOT NULL
+    GROUP BY user_id, product_id
+    HAVING COUNT(*) > 1
+  ) duplicate_groups
+) duplicates ON duplicates.keep_id = ci.id
+SET ci.quantity = LEAST(duplicates.total_quantity, 99), ci.updated_at = UTC_TIMESTAMP();
+
+DELETE ci
+FROM cart_items ci
+JOIN (
+  SELECT *
+  FROM (
+    SELECT MIN(id) AS keep_id, user_id, product_id
+    FROM cart_items
+    WHERE product_id IS NOT NULL
+    GROUP BY user_id, product_id
+    HAVING COUNT(*) > 1
+  ) duplicate_groups
+) duplicates
+  ON duplicates.user_id = ci.user_id
+ AND duplicates.product_id = ci.product_id
+ AND duplicates.keep_id <> ci.id;
+
+SET @has_cart_user_product_unique := (
+  SELECT COUNT(*)
+  FROM INFORMATION_SCHEMA.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'cart_items'
+    AND INDEX_NAME = 'uq_cart_user_product'
+);
+SET @sql_cart_user_product_unique := IF(
+  @has_cart_user_product_unique = 0,
+  'ALTER TABLE cart_items ADD UNIQUE KEY uq_cart_user_product (user_id, product_id)',
+  'SELECT 1'
+);
+PREPARE stmt_cart_user_product_unique FROM @sql_cart_user_product_unique;
+EXECUTE stmt_cart_user_product_unique;
+DEALLOCATE PREPARE stmt_cart_user_product_unique;
 
 CREATE TABLE IF NOT EXISTS wishlist_items (
   id VARCHAR(80) PRIMARY KEY,

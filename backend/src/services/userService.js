@@ -1,12 +1,8 @@
 import { withTransaction, getPool } from '../config/mysql.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/http.js';
-import { addressSchema, profileSchema, profileUpdateSchema, validateWithSchema } from '../utils/validators.js';
+import { addressSchema, onlyDigits, profileSchema, profileUpdateSchema, validateWithSchema } from '../utils/validators.js'; // fix: CODE-1
 import { getAddresses, getUserProfile, listAdmins, replaceAddresses, upsertAdmin, upsertUserProfile } from '../repositories/userRepository.js';
-
-function onlyDigits(value = '') {
-  return String(value || '').replace(/\D/g, '');
-}
 
 export async function getMe(uid) {
   const connection = getPool();
@@ -101,6 +97,11 @@ export async function createAdmin(currentUserUid, email) {
   const targetUser = users[0];
   if (!targetUser) {
     throw new AppError(404, 'Usuário não encontrado no MySQL. Cadastre o perfil do usuário antes de promovê-lo a administrador.');
+  }
+
+  const [existingAdmin] = await connection.execute('SELECT id FROM admins WHERE email = ? LIMIT 1', [normalizedEmail]); // fix: SEC-3
+  if (existingAdmin.length > 0) {
+    return { ok: true, uid: targetUser.id, email: normalizedEmail, alreadyAdmin: true }; // fix: SEC-3
   }
 
   await withTransaction(async (transaction) => {

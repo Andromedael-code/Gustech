@@ -20,16 +20,17 @@
   <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
 
   <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
-    <div class="page-container page-header py-4">
+    <div class="page-container page-header py-2.5">
       <div class="page-header__left">
-        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+        <a href="carrinho.html" class="secondary-btn store-icon-btn" aria-label="Voltar para o carrinho"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
-        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+        <a href="favoritos.html" class="secondary-btn store-icon-btn" aria-label="Favoritos"><i class="fas fa-heart"></i></a>
+        <a href="carrinho.html" class="secondary-btn store-icon-btn relative" aria-label="Carrinho"><i class="fas fa-bag-shopping"></i><span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span></a>
       </div>
     </div>
   </header>
@@ -42,13 +43,13 @@
 
       <form id="checkout-form" class="space-y-5 mt-6">
         <div>
-          <label class="mini-meta block mb-2">Endereco de entrega</label>
+          <label for="address-select" class="mini-meta block mb-2">Endereco de entrega</label>
           <select id="address-select" class="store-select"></select>
           <p id="address-preview" class="mini-meta mt-2"></p>
         </div>
 
         <div>
-          <label class="mini-meta block mb-2">Forma de pagamento</label>
+          <label for="payment-method" class="mini-meta block mb-2">Forma de pagamento</label>
           <select id="payment-method" class="store-select">
             <option value="pix">Pix</option>
             <option value="credit_card">Cartao de credito</option>
@@ -59,9 +60,9 @@
         </div>
 
         <div id="card-block" class="hidden grid gap-4 md:grid-cols-2">
-          <input id="card-holder" class="store-input md:col-span-2" placeholder="Nome no cartao">
-          <input id="card-number" class="store-input" placeholder="Numero do cartao">
-          <select id="installments" class="store-select">
+          <input id="card-holder" class="store-input md:col-span-2" placeholder="Nome no cartao" aria-label="Nome no cartao">
+          <input id="card-number" class="store-input" placeholder="Numero do cartao" aria-label="Numero do cartao">
+          <select id="installments" class="store-select" aria-label="Parcelas">
             <option value="1">1x sem juros</option>
             <option value="2">2x sem juros</option>
             <option value="3">3x sem juros</option>
@@ -69,11 +70,11 @@
         </div>
 
         <div id="boleto-block" class="hidden">
-          <input id="boleto-due" class="store-input" value="Vencimento em 3 dias apos emissao" readonly>
+          <input id="boleto-due" class="store-input" value="Vencimento em 3 dias apos emissao" aria-label="Vencimento do boleto" readonly>
         </div>
 
         <button class="primary-btn w-full" type="submit"><i class="fas fa-lock"></i>Criar pedido com seguranca</button>
-        <p id="checkout-feedback" class="mini-meta"></p>
+        <p id="checkout-feedback" class="mini-meta" role="alert"></p>
       </form>
     </section>
 

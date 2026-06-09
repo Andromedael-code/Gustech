@@ -20,16 +20,17 @@
   <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
 
   <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
-    <div class="page-container page-header py-4">
+    <div class="page-container page-header py-2.5">
       <div class="page-header__left">
-        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+        <a href="index.html" class="secondary-btn store-icon-btn" aria-label="Voltar para a pagina inicial"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
-        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+        <a href="favoritos.html" class="secondary-btn store-icon-btn" aria-label="Favoritos"><i class="fas fa-heart"></i></a>
+        <a href="carrinho.html" class="secondary-btn store-icon-btn relative" aria-label="Carrinho"><i class="fas fa-bag-shopping"></i><span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span></a>
       </div>
     </div>
   </header>

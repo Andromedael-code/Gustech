@@ -12,11 +12,20 @@ export async function createOrder(connection, order) {
     [orderId, order.deliveryAddress.label || 'Entrega', order.deliveryAddress.street, order.deliveryAddress.number, order.deliveryAddress.neighborhood, order.deliveryAddress.zip, order.deliveryAddress.complement || '']
   );
 
-  for (const item of order.items) {
+  if (order.items.length > 0) { // fix: BUG-5
+    const placeholders = order.items.map(() => '(?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())').join(', ');
+    const values = order.items.flatMap((item) => [
+      orderId,
+      item.productId || null,
+      item.name,
+      item.image || null,
+      item.price,
+      item.quantity
+    ]);
     await connection.execute(
       `INSERT INTO order_items (order_id, product_id, name, image_url, unit_price, quantity, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
-      [orderId, item.productId || null, item.name, item.image || null, item.price, item.quantity]
+       VALUES ${placeholders}`,
+      values
     );
   }
 
@@ -32,6 +41,12 @@ export async function appendOrderTimeline(connection, orderId, status, byUserId)
   );
 }
 
+const ORDER_COLUMNS = `id, user_id AS userId, status, payment_method AS method, payment_details_json, total_amount AS total,
+  customer_username, customer_name, customer_email, customer_cpf, customer_phone,
+  invoice_number AS invoiceNumber, invoice_status AS invoiceStatus, invoice_issued_at AS invoiceIssuedAt,
+  shipping_label_code AS shippingLabelCode, shipping_carrier AS shippingCarrier, shipping_generated_at AS shippingGeneratedAt,
+  created_at AS createdAt, updated_at AS updatedAt`;
+
 function parseJsonObject(value) {
   if (!value) return {};
   if (typeof value === 'object') return value;
@@ -42,34 +57,7 @@ function parseJsonObject(value) {
   }
 }
 
-export async function getOrderById(connection, orderId) {
-  const [orders] = await connection.execute(
-    `SELECT id, user_id AS userId, status, payment_method AS method, payment_details_json, total_amount AS total,
-      customer_username, customer_name, customer_email, customer_cpf, customer_phone,
-      invoice_number AS invoiceNumber, invoice_status AS invoiceStatus, invoice_issued_at AS invoiceIssuedAt,
-      shipping_label_code AS shippingLabelCode, shipping_carrier AS shippingCarrier, shipping_generated_at AS shippingGeneratedAt,
-      created_at AS createdAt, updated_at AS updatedAt
-     FROM orders WHERE id = ? LIMIT 1`,
-    [orderId]
-  );
-  const order = orders[0];
-  if (!order) return null;
-
-  const [items] = await connection.execute(
-    `SELECT product_id AS productId, name, image_url AS image, unit_price AS price, quantity
-     FROM order_items WHERE order_id = ? ORDER BY id ASC`,
-    [orderId]
-  );
-  const [timeline] = await connection.execute(
-    `SELECT status, changed_by AS changedBy, created_at AS at FROM order_timeline WHERE order_id = ? ORDER BY id ASC`,
-    [orderId]
-  );
-  const [addresses] = await connection.execute(
-    `SELECT label, street, number, neighborhood, zip, complement
-     FROM order_addresses WHERE order_id = ? LIMIT 1`,
-    [orderId]
-  );
-
+function buildOrder(order, { items = [], timeline = [], address = null } = {}) {
   return {
     ...order,
     paymentDetails: parseJsonObject(order.payment_details_json),
@@ -83,13 +71,26 @@ export async function getOrderById(connection, orderId) {
     },
     items,
     timeline,
-    deliveryAddress: addresses[0] || null,
+    deliveryAddress: address,
     invoice: order.invoiceNumber ? { number: order.invoiceNumber, fiscalStatus: order.invoiceStatus, issuedAt: order.invoiceIssuedAt } : null,
     shipping: order.shippingLabelCode ? { labelCode: order.shippingLabelCode, carrier: order.shippingCarrier, generatedAt: order.shippingGeneratedAt } : null
   };
 }
 
-export async function listOrders(connection, { userId = null, userIds = [], customerEmail = null, status = null, limit = 20 } = {}) {
+async function withDedicatedConnection(poolOrConnection, callback) {
+  if (typeof poolOrConnection?.getConnection !== 'function') {
+    return callback(poolOrConnection);
+  }
+
+  const connection = await poolOrConnection.getConnection();
+  try {
+    return await callback(connection);
+  } finally {
+    connection.release();
+  }
+}
+
+function pushOrderFilters({ userId = null, userIds = [], customerEmail = null, status = null } = {}) {
   const params = [];
   const normalizedUserIds = Array.from(new Set([...(userId ? [userId] : []), ...(Array.isArray(userIds) ? userIds : [])].filter(Boolean)));
   const where = [];
@@ -111,19 +112,105 @@ export async function listOrders(connection, { userId = null, userIds = [], cust
     params.push(customerEmail);
   }
 
-  let sql = `SELECT id FROM orders ${where.length ? `WHERE ${where.join(' AND ')}` : ''}`;
   if (status) {
-    sql += `${where.length ? ' AND' : ' WHERE'} status = ?`;
+    where.push('status = ?');
     params.push(status);
   }
-  sql += ' ORDER BY created_at DESC LIMIT ?';
-  params.push(limit);
-  const [rows] = await connection.execute(sql, params);
-  const results = [];
-  for (const row of rows) {
-    results.push(await getOrderById(connection, row.id));
-  }
-  return results;
+
+  return { where, params };
+}
+
+async function hydrateOrders(connection, orders = []) {
+  if (!orders.length) return [];
+
+  const orderIds = orders.map((order) => order.id);
+  const placeholders = orderIds.map(() => '?').join(', ');
+
+  const [items] = await connection.execute(
+    `SELECT order_id AS orderId, product_id AS productId, name, image_url AS image, unit_price AS price, quantity
+     FROM order_items WHERE order_id IN (${placeholders}) ORDER BY order_id ASC, id ASC`,
+    orderIds
+  );
+  const [timeline] = await connection.execute(
+    `SELECT order_id AS orderId, status, changed_by AS changedBy, created_at AS at
+     FROM order_timeline WHERE order_id IN (${placeholders}) ORDER BY order_id ASC, id ASC`,
+    orderIds
+  );
+  const [addresses] = await connection.execute(
+    `SELECT order_id AS orderId, label, street, number, neighborhood, zip, complement
+     FROM order_addresses WHERE order_id IN (${placeholders}) ORDER BY order_id ASC, id ASC`,
+    orderIds
+  );
+
+  const itemsByOrder = new Map();
+  items.forEach((item) => {
+    const { orderId, ...itemData } = item;
+    const list = itemsByOrder.get(item.orderId) || [];
+    list.push(itemData);
+    itemsByOrder.set(item.orderId, list);
+  });
+
+  const timelineByOrder = new Map();
+  timeline.forEach((entry) => {
+    const { orderId, ...timelineEntry } = entry;
+    const list = timelineByOrder.get(entry.orderId) || [];
+    list.push(timelineEntry);
+    timelineByOrder.set(entry.orderId, list);
+  });
+
+  const addressByOrder = new Map();
+  addresses.forEach((address) => {
+    if (!addressByOrder.has(address.orderId)) {
+      const { orderId, ...addressData } = address;
+      addressByOrder.set(address.orderId, addressData);
+    }
+  });
+
+  return orders.map((order) => buildOrder(order, {
+    items: itemsByOrder.get(order.id) || [],
+    timeline: timelineByOrder.get(order.id) || [],
+    address: addressByOrder.get(order.id) || null
+  }));
+}
+
+export async function getOrderById(connection, orderId) {
+  return withDedicatedConnection(connection, async (dedicatedConnection) => {
+    const [orders] = await dedicatedConnection.execute(
+      `SELECT ${ORDER_COLUMNS} FROM orders WHERE id = ? LIMIT 1`,
+      [orderId]
+    );
+    const hydrated = await hydrateOrders(dedicatedConnection, orders);
+    return hydrated[0] || null;
+  });
+}
+
+export async function listOrders(poolOrConnection, { limit = 20, offset = 0, ...filters } = {}) {
+  return withDedicatedConnection(poolOrConnection, async (connection) => {
+    const { where, params } = pushOrderFilters(filters);
+    params.push(limit, offset); // fix: BUG-2
+    const [rows] = await connection.execute(
+      `SELECT ${ORDER_COLUMNS}
+       FROM orders
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}
+       ORDER BY created_at DESC
+       LIMIT ? OFFSET ?`,
+      params
+    );
+    return hydrateOrders(connection, rows);
+  });
+}
+
+export async function countOrders(poolOrConnection, filters = {}) {
+  return withDedicatedConnection(poolOrConnection, async (connection) => {
+    const { where, params } = pushOrderFilters(filters);
+    const [rows] = await connection.execute(
+      `SELECT COUNT(*) AS total
+       FROM orders
+       ${where.length ? `WHERE ${where.join(' AND ')}` : ''}`,
+      params
+    );
+    return Number(rows[0]?.total || 0);
+  });
 }
 
 export async function updateOrderStatus(connection, orderId, nextStatus, adminUid) {
@@ -131,14 +218,13 @@ export async function updateOrderStatus(connection, orderId, nextStatus, adminUi
   await appendOrderTimeline(connection, orderId, nextStatus, adminUid);
 }
 
-export async function setInvoice(connection, orderId, invoiceNumber, adminUid) {
+export async function setInvoice(connection, orderId, invoiceNumber) {
   await connection.execute(
     `UPDATE orders
      SET invoice_number = ?, invoice_status = 'issued', invoice_issued_at = UTC_TIMESTAMP(), updated_at = UTC_TIMESTAMP()
      WHERE id = ?`,
     [invoiceNumber, orderId]
   );
-  await appendOrderTimeline(connection, orderId, 'processing', adminUid);
 }
 
 export async function setShipping(connection, orderId, shipping, adminUid, nextStatus) {

@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meus pedidos | GusTech</title>
+  <meta name="description" content="Produtos favoritos da sua conta GusTech.">
+  <title>Favoritos | GusTech</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +37,7 @@
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
-        <a href="favoritos.html" class="secondary-btn store-icon-btn" aria-label="Favoritos"><i class="fas fa-heart"></i></a>
+        <a href="favoritos.html" class="secondary-btn store-icon-btn" aria-label="Favoritos"><i class="fas fa-heart text-red-300"></i></a>
         <a href="carrinho.html" class="secondary-btn store-icon-btn relative" aria-label="Carrinho"><i class="fas fa-bag-shopping"></i><span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span></a>
       </div>
     </div>
@@ -46,32 +47,26 @@
     <section class="surface-panel rounded-[32px] p-6 md:p-8">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div class="mini-meta uppercase tracking-[0.22em]">Minha conta</div>
-          <h1 class="text-4xl font-display font-bold mt-2">Meus pedidos</h1>
-          <p class="text-slate-400 mt-3">Acompanhe status, itens, valores e historico dos seus pedidos em um so lugar.</p>
-          <select id="orders-status-filter" class="store-select mt-4" aria-label="Filtrar pedidos por status"> <!-- feat: FEATURE-4 -->
-            <option value="">Todos os pedidos</option>
-            <option value="pending">Pendentes</option>
-            <option value="paid">Pagos</option>
-            <option value="processing">Em processamento</option>
-            <option value="shipped">Enviados</option>
-            <option value="delivered">Entregues</option>
-            <option value="cancelled">Cancelados</option>
-          </select>
+          <div class="mini-meta uppercase tracking-[0.22em]">Sua lista</div>
+          <h1 class="text-4xl font-display font-bold mt-2">Favoritos</h1>
+          <p id="favorites-subtitle" class="text-slate-400 mt-3">Produtos salvos para comparar, comprar depois ou voltar rapidinho.</p>
         </div>
-        <a href="conta.html" class="secondary-btn"><i class="fas fa-user"></i>Minha conta</a>
+        <div class="flex flex-wrap items-center gap-3">
+          <a href="index.html#catalog-section" class="secondary-btn"><i class="fas fa-store"></i>Explorar loja</a>
+          <a href="carrinho.html" class="primary-btn"><i class="fas fa-bag-shopping"></i>Ir ao carrinho</a>
+        </div>
       </div>
     </section>
 
-    <section class="surface-panel rounded-[32px] p-6 md:p-8">
-      <div id="orders-list" class="space-y-4"></div>
-      <p id="feedback" class="text-sm hidden"></p>
+    <section id="favorites-content" class="surface-panel rounded-[32px] p-6 md:p-8">
+      <div id="favorites-list" class="product-grid product-grid--compact"></div>
+      <p id="favorites-feedback" class="mt-5 text-sm hidden" role="alert"></p>
     </section>
   </main>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="js/api.js"></script>
-  <script type="module" src="js/pedidos-page.js"></script>
+  <script type="module" src="js/favorites-page.js"></script>
 </body>
 </html>

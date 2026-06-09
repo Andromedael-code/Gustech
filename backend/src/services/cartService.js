@@ -1,16 +1,21 @@
 import { getPool, withTransaction } from '../config/mysql.js';
 import { AppError } from '../utils/http.js';
+import { getProductById } from '../repositories/productRepository.js';
 import { addCartItem, clearCartItems, listCartItems, removeCartItem, updateCartItemQuantity } from '../repositories/cartRepository.js';
 
-function normalizeCartItem(payload = {}) {
-  const name = String(payload.name || '').trim();
-  if (!name) throw new AppError(400, 'Item invalido para o carrinho.');
+async function normalizeCartItem(payload = {}) {
+  const productId = String(payload.productId || '').trim();
+  if (!productId) throw new AppError(400, 'Produto invalido para o carrinho.');
+
+  const product = await getProductById(getPool(), productId);
+  if (!product || !product.isActive) throw new AppError(404, 'Produto nao encontrado.');
+
   return {
-    productId: payload.productId ? String(payload.productId) : null,
-    name,
-    image: String(payload.image || '').trim(),
-    price: Number(payload.price || 0),
-    oldPrice: Number(payload.oldPrice || 0),
+    productId,
+    name: product.name,
+    image: product.image || '',
+    price: Number(product.price || 0),
+    oldPrice: Number(product.oldPrice || 0),
     quantity: Math.min(Math.max(Number(payload.quantity || 1), 1), 99)
   };
 }
@@ -20,7 +25,7 @@ export async function listMyCart(uid) {
 }
 
 export async function addItemToMyCart(uid, payload) {
-  const item = normalizeCartItem(payload);
+  const item = await normalizeCartItem(payload);
   const docId = await withTransaction((connection) => addCartItem(connection, uid, item));
   return { docId, ...item };
 }

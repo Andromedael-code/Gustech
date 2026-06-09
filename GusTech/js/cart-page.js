@@ -1,4 +1,4 @@
-import { currency, deleteCartItem, loadCart, qsa, qs, saveCheckoutSelection, toast, updateCartItem } from './storefront-core.js';
+import { currency, deleteCartItem, escapeHtml, loadCart, qsa, qs, saveCheckoutSelection, toast, updateCartItem } from './storefront-core.js';
 
 const state = { items: [], selected: new Set() };
 
@@ -28,28 +28,28 @@ function renderCart() {
     <article class="surface-panel rounded-[28px] p-5">
       <div class="flex flex-col gap-4 md:flex-row md:items-center">
         <label class="flex items-center gap-3">
-          <input type="checkbox" class="accent-blue-500 cart-check" data-id="${item.docId}" ${state.selected.has(item.docId) ? 'checked' : ''}>
-          <img src="${item.image}" alt="${item.name}" class="w-24 h-24 rounded-2xl object-cover">
+          <input type="checkbox" class="accent-blue-500 cart-check" data-id="${escapeHtml(item.docId)}" ${state.selected.has(item.docId) ? 'checked' : ''}>
+          <img src="${escapeHtml(item.image || '')}" alt="${escapeHtml(item.name || 'Produto')}" class="w-24 h-24 rounded-2xl object-cover">
         </label>
         <div class="flex-1 space-y-2">
-          <a class="text-xl font-display font-bold text-white" href="produto.html?id=${item.productId || ''}">${item.name}</a>
-          <div class="mini-meta">${item.productId || 'Produto em carrinho'}</div>
+          <a class="text-xl font-display font-bold text-white" href="produto.html?id=${encodeURIComponent(item.productId || '')}">${escapeHtml(item.name || 'Produto')}</a>
+          <div class="mini-meta">${escapeHtml(item.productId || 'Produto em carrinho')}</div>
           <div class="flex flex-wrap items-center gap-4">
             <div>
               ${Number(item.oldPrice || 0) > Number(item.price || 0) ? `<div class="mini-meta line-through">${currency(item.oldPrice)}</div>` : ''}
               <div class="text-xl font-bold">${currency(item.price)}</div>
             </div>
             <div class="quantity-stepper">
-              <button type="button" class="qty-step" data-id="${item.docId}" data-step="-1">-</button>
+              <button type="button" class="qty-step" data-id="${escapeHtml(item.docId)}" data-step="-1">-</button>
               <span>${item.quantity || 1}</span>
-              <button type="button" class="qty-step" data-id="${item.docId}" data-step="1">+</button>
+              <button type="button" class="qty-step" data-id="${escapeHtml(item.docId)}" data-step="1">+</button>
             </div>
           </div>
         </div>
         <div class="text-right">
           <div class="mini-meta">Subtotal</div>
           <div class="text-xl font-bold">${currency(Number(item.price || 0) * Number(item.quantity || 1))}</div>
-          <button class="danger-btn mt-4 remove-item" data-id="${item.docId}"><i class="fas fa-trash"></i>Remover</button>
+          <button class="danger-btn mt-4 remove-item" data-id="${escapeHtml(item.docId)}"><i class="fas fa-trash"></i>Remover</button>
         </div>
       </div>
     </article>

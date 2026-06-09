@@ -1,3 +1,5 @@
+import { isSqlite } from '../config/mysql.js';
+
 function safeJsonObject(value, fallback = {}) {
   if (!value) return fallback;
   if (typeof value === 'object' && !Array.isArray(value)) return value;
@@ -29,6 +31,18 @@ export async function getStorefrontSetting(connection, key) {
 }
 
 export async function upsertStorefrontSetting(connection, key, value) {
+  if (isSqlite()) {
+    await connection.execute(
+      `INSERT INTO storefront_settings (settings_key, settings_json, updated_at)
+       VALUES (?, ?, UTC_TIMESTAMP())
+       ON CONFLICT(settings_key) DO UPDATE SET
+         settings_json = excluded.settings_json,
+         updated_at = CURRENT_TIMESTAMP`,
+      [key, JSON.stringify(value || {})]
+    );
+    return;
+  }
+
   await connection.execute(
     `INSERT INTO storefront_settings (settings_key, settings_json, updated_at)
      VALUES (?, ?, UTC_TIMESTAMP())

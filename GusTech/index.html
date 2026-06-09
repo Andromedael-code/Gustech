@@ -37,13 +37,16 @@
 
         <div class="store-header-search">
           <i class="fas fa-magnifying-glass"></i>
-          <input id="search-input" class="store-header-search__input" type="search" placeholder="Buscar...">
+          <input id="search-input" class="store-header-search__input" type="search" placeholder="Buscar..." aria-label="Buscar produtos">
         </div>
 
         <div class="store-header-actions">
           <div data-theme-slot></div>
           <a id="orders-btn" class="secondary-btn text-sm" href="pedidos.html"><i class="fas fa-box"></i>Pedidos</a>
           <a id="auth-action-btn" class="secondary-btn text-sm" href="conta.html">Entrar / Criar conta</a>
+          <a class="secondary-btn store-icon-btn" href="favoritos.html" aria-label="Favoritos">
+            <i class="fas fa-heart"></i>
+          </a>
           <a class="secondary-btn store-icon-btn relative" href="carrinho.html" aria-label="Carrinho">
             <i class="fas fa-bag-shopping"></i>
             <span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span>
@@ -70,12 +73,12 @@
     <section id="catalog-section" class="space-y-4">
       <div class="surface-panel rounded-[32px] p-5 md:p-6">
         <div class="filters-grid">
-          <select id="category-select" class="store-select">
+          <select id="category-select" class="store-select" aria-label="Categoria">
             <option value="">Todas as categorias</option>
           </select>
-          <input id="price-min" class="store-input" type="number" min="0" placeholder="Preço mínimo">
-          <input id="price-max" class="store-input" type="number" min="0" placeholder="Preço máximo">
-          <select id="sort-select" class="store-select">
+          <input id="price-min" class="store-input" type="number" min="0" placeholder="Preço mínimo" aria-label="Preco minimo">
+          <input id="price-max" class="store-input" type="number" min="0" placeholder="Preço máximo" aria-label="Preco maximo">
+          <select id="sort-select" class="store-select" aria-label="Ordenacao">
             <option value="relevance">Mais relevantes</option>
             <option value="top_rated">Melhor avaliados</option>
             <option value="best_sellers">Mais vendidos</option>

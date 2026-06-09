@@ -19,6 +19,21 @@ const state = {
 const $ = qs;
 const onlyDigits = (value = '') => String(value || '').replace(/\D/g, '');
 
+function safeNextPage(value = '') {
+  const fallback = 'conta.html';
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  try {
+    const url = new URL(raw, window.location.href);
+    if (url.origin !== window.location.origin) return fallback;
+    return `${url.pathname.split('/').pop() || fallback}${url.search}${url.hash}`;
+  } catch {
+    return fallback;
+  }
+}
+
+state.nextPage = safeNextPage(state.nextPage);
+
 function setFeedback(message, type = 'ok') {
   const node = $('#feedback');
   if (!node) return;
@@ -48,6 +63,20 @@ function maskPhone(value) {
 function maskZip(value) {
   const digits = onlyDigits(value).slice(0, 8);
   return digits.replace(/(\d{5})(\d)/, '$1-$2');
+}
+
+async function lookupAddressByCep() {
+  const zipInput = $('#address-zip');
+  const cep = onlyDigits(zipInput?.value || '');
+  if (cep.length !== 8) return;
+
+  try {
+    const data = await api(`/utils/cep/${cep}`);
+    if ($('#address-street') && data.logradouro) $('#address-street').value = data.logradouro;
+    if ($('#address-neighborhood') && data.bairro) $('#address-neighborhood').value = data.bairro;
+  } catch {
+    toast('Nao foi possivel buscar este CEP automaticamente.', 'error');
+  }
 }
 
 function formatPhoneVerificationDate(value) {
@@ -629,6 +658,7 @@ function attachMasks() {
   });
   ['address-zip'].forEach((id) => {
     document.getElementById(id)?.addEventListener('input', (event) => { event.target.value = maskZip(event.target.value); });
+    document.getElementById(id)?.addEventListener('blur', lookupAddressByCep);
   });
 }
 

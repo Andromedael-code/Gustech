@@ -1,3 +1,4 @@
+import { isSqlite } from '../config/mysql.js';
 import { buildCategoryCaseExpression, expandCatalogFilterCategory, sanitizeCatalogCategory } from '../utils/catalogCategories.js';
 
 function mapProductRow(row) {
@@ -8,7 +9,8 @@ function mapProductRow(row) {
     categories: categories.length ? categories : [row.category].filter(Boolean),
     gallery: safeJsonArray(row.gallery_json),
     highlights: safeJsonArray(row.highlights_json),
-    specs: safeJsonArray(row.specs_json)
+    specs: safeJsonArray(row.specs_json),
+    variants: safeJsonArray(row.variants_json)
   };
 }
 
@@ -42,8 +44,15 @@ function buildProductFilters(filters = {}) {
   if (!filters.includeInactive) where.push('is_active = 1');
   if (filters.category && filters.category !== 'todos') {
     const categories = expandCatalogFilterCategory(filters.category);
-    where.push(`(${categories.map(() => `JSON_CONTAINS(${categoriesExpr}, JSON_ARRAY(?))`).join(' OR ')})`);
-    params.push(...categories);
+    if (isSqlite()) {
+      where.push(`(${categories.map(() => '(category = ? OR categories_json LIKE ?)').join(' OR ')})`);
+      categories.forEach((category) => {
+        params.push(category, `%"${category}"%`);
+      });
+    } else {
+      where.push(`(${categories.map(() => `JSON_CONTAINS(${categoriesExpr}, JSON_ARRAY(?))`).join(' OR ')})`);
+      params.push(...categories);
+    }
   }
   if (Number.isFinite(Number(filters.minPrice)) && Number(filters.minPrice) > 0) {
     where.push('price >= ?');
@@ -82,10 +91,10 @@ export async function listProducts(connection, filters = {}) {
   const limit = Math.min(Math.max(Number(filters.limit) || 200, 1), 500);
   const page = Math.max(Number(filters.page) || 1, 1);
   const offset = (page - 1) * limit;
-  params.push(limit, offset);
+  params.push(limit, offset); // fix: BUG-2
 
   const [rows] = await connection.execute(
-    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json,
+    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json, variants_json,
             price, old_price AS oldPrice, stock, condition_label AS \`condition\`, sales, rating, reviews_count AS reviews,
             relevance_score AS relevanceScore, is_active AS isActive,
             created_at AS createdAt, updated_at AS updatedAt
@@ -140,8 +149,32 @@ export async function listRelatedProducts(connection, product, limit = 4) {
       .filter(Boolean)
   ));
   const categoriesExpr = `COALESCE(categories_json, JSON_ARRAY(${categoryExpr}))`;
+  if (isSqlite()) {
+    const categoryConditions = relatedCategories.map(() => '(category = ? OR categories_json LIKE ?)');
+    const categoryParams = relatedCategories.flatMap((category) => [category, `%"${category}"%`]);
+    const categoryWhere = categoryConditions.length ? `(${categoryConditions.join(' OR ')})` : '0';
+    const [rows] = await connection.execute(
+      `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json, variants_json,
+              price, old_price AS oldPrice, stock, condition_label AS \`condition\`, sales, rating, reviews_count AS reviews,
+              relevance_score AS relevanceScore, is_active AS isActive,
+              created_at AS createdAt, updated_at AS updatedAt
+       FROM products
+       WHERE is_active = 1 AND id <> ? AND (${categoryWhere} OR price BETWEEN ? AND ?)
+       ORDER BY CASE WHEN ${categoryWhere} THEN 1 ELSE 0 END DESC, relevance_score DESC, rating DESC, sales DESC
+       LIMIT ?`,
+      [
+        product.id,
+        ...categoryParams,
+        Math.max(Number(product.price || 0) - 700, 0),
+        Number(product.price || 0) + 700,
+        ...categoryParams,
+        limit // fix: BUG-2
+      ]
+    );
+    return rows.map(mapProductRow);
+  }
   const [rows] = await connection.execute(
-    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json,
+    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json, variants_json,
             price, old_price AS oldPrice, stock, condition_label AS \`condition\`, sales, rating, reviews_count AS reviews,
             relevance_score AS relevanceScore, is_active AS isActive,
             created_at AS createdAt, updated_at AS updatedAt
@@ -155,7 +188,7 @@ export async function listRelatedProducts(connection, product, limit = 4) {
       Math.max(Number(product.price || 0) - 700, 0),
       Number(product.price || 0) + 700,
       ...relatedCategories,
-      limit
+      limit // fix: BUG-2
     ]
   );
   return rows.map(mapProductRow);
@@ -173,7 +206,7 @@ export async function listCatalogCategories(connection) {
 export async function getProductById(connection, id) {
   const categoryExpr = buildCategoryCaseExpression('category', 'id');
   const [rows] = await connection.execute(
-    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json,
+    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json, variants_json,
             price, old_price AS oldPrice, stock, condition_label AS \`condition\`, sales, rating, reviews_count AS reviews,
             relevance_score AS relevanceScore, is_active AS isActive,
             created_at AS createdAt, updated_at AS updatedAt
@@ -189,7 +222,7 @@ export async function getProductsByIds(connection, ids = []) {
   const categoryExpr = buildCategoryCaseExpression('category', 'id');
   const placeholders = ids.map(() => '?').join(', ');
   const [rows] = await connection.execute(
-    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json,
+    `SELECT id, slug, name, description, ${categoryExpr} AS category, categories_json, brand, badge, image_url AS image, gallery_json, highlights_json, specs_json, variants_json,
             price, old_price AS oldPrice, stock, condition_label AS \`condition\`, sales, rating, reviews_count AS reviews,
             relevance_score AS relevanceScore, is_active AS isActive,
             created_at AS createdAt, updated_at AS updatedAt
@@ -219,8 +252,8 @@ export async function listAllProductOptions(connection) {
 export async function createProduct(connection, product) {
   await connection.execute(
     `INSERT INTO products
-      (id, slug, name, description, category, categories_json, brand, badge, image_url, gallery_json, highlights_json, specs_json, price, old_price, stock, condition_label, sales, rating, reviews_count, relevance_score, is_active, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
+      (id, slug, name, description, category, categories_json, brand, badge, image_url, gallery_json, highlights_json, specs_json, variants_json, price, old_price, stock, condition_label, sales, rating, reviews_count, relevance_score, is_active, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())`,
     [
       product.id,
       product.slug,
@@ -234,6 +267,7 @@ export async function createProduct(connection, product) {
       JSON.stringify(product.gallery || []),
       JSON.stringify(product.highlights || []),
       JSON.stringify(product.specs || []),
+      JSON.stringify(product.variants || []),
       product.price,
       product.oldPrice,
       product.stock,
@@ -250,7 +284,7 @@ export async function createProduct(connection, product) {
 export async function updateProduct(connection, id, product) {
   await connection.execute(
     `UPDATE products
-     SET slug = ?, name = ?, description = ?, category = ?, categories_json = ?, brand = ?, badge = ?, image_url = ?, gallery_json = ?, highlights_json = ?, specs_json = ?,
+     SET slug = ?, name = ?, description = ?, category = ?, categories_json = ?, brand = ?, badge = ?, image_url = ?, gallery_json = ?, highlights_json = ?, specs_json = ?, variants_json = ?,
          price = ?, old_price = ?, stock = ?, condition_label = ?, sales = ?, rating = ?, reviews_count = ?, relevance_score = ?, is_active = ?, updated_at = UTC_TIMESTAMP()
      WHERE id = ?`,
     [
@@ -265,6 +299,7 @@ export async function updateProduct(connection, id, product) {
       JSON.stringify(product.gallery || []),
       JSON.stringify(product.highlights || []),
       JSON.stringify(product.specs || []),
+      JSON.stringify(product.variants || []),
       product.price,
       product.oldPrice,
       product.stock,
@@ -279,12 +314,22 @@ export async function updateProduct(connection, id, product) {
   );
 }
 
-export async function deleteProduct(connection, id) {
-  await connection.execute('DELETE FROM products WHERE id = ?', [id]);
+export async function softDeleteProduct(connection, id) {
+  await connection.execute('UPDATE products SET is_active = 0, updated_at = UTC_TIMESTAMP() WHERE id = ?', [id]);
 }
 
 export async function incrementProductSales(connection, productId, quantity) {
   await connection.execute('UPDATE products SET sales = sales + ?, updated_at = UTC_TIMESTAMP() WHERE id = ?', [quantity, productId]);
+}
+
+export async function decrementProductSales(connection, productId, quantity) {
+  await connection.execute(
+    `UPDATE products
+     SET sales = CASE WHEN sales >= ? THEN sales - ? ELSE 0 END,
+         updated_at = UTC_TIMESTAMP()
+     WHERE id = ?`,
+    [quantity, quantity, productId]
+  );
 }
 
 export async function getProductStock(connection, productId) {
@@ -303,6 +348,18 @@ export async function decrementProductStock(connection, productId, quantity) {
 }
 
 export async function refreshProductReviewAggregate(connection, productId) {
+  if (isSqlite()) {
+    await connection.execute(
+      `UPDATE products
+       SET rating = COALESCE((SELECT ROUND(AVG(rating), 1) FROM product_reviews WHERE product_id = ?), 0),
+           reviews_count = COALESCE((SELECT COUNT(*) FROM product_reviews WHERE product_id = ?), 0),
+           updated_at = UTC_TIMESTAMP()
+       WHERE id = ?`,
+      [productId, productId, productId]
+    );
+    return;
+  }
+
   await connection.execute(
     `UPDATE products p
      LEFT JOIN (
@@ -316,6 +373,16 @@ export async function refreshProductReviewAggregate(connection, productId) {
 }
 
 export async function refreshAllProductReviewAggregates(connection) {
+  if (isSqlite()) {
+    await connection.execute(
+      `UPDATE products
+       SET rating = COALESCE((SELECT ROUND(AVG(rating), 1) FROM product_reviews WHERE product_id = products.id), 0),
+           reviews_count = COALESCE((SELECT COUNT(*) FROM product_reviews WHERE product_id = products.id), 0),
+           updated_at = UTC_TIMESTAMP()`
+    );
+    return;
+  }
+
   await connection.execute(
     `UPDATE products p
      LEFT JOIN (

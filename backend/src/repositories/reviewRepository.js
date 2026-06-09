@@ -19,6 +19,7 @@ export async function userPurchasedProduct(connection, uid, productId, email = '
      FROM orders o
      INNER JOIN order_items oi ON oi.order_id = o.id
      WHERE oi.product_id = ?
+       AND o.status IN ('paid', 'processing', 'shipped', 'delivered')
        AND (o.user_id = ? ${normalizedEmail ? 'OR o.customer_email = ?' : ''})
      LIMIT 1`,
     normalizedEmail ? [productId, uid, normalizedEmail] : [productId, uid]

@@ -1,4 +1,5 @@
 import { env } from '../config/env.js';
+import { verifyFirebaseIdToken } from '../config/firebase.js';
 import { AppError } from '../utils/http.js';
 
 function parseDevelopmentToken(rawToken = '') {
@@ -29,6 +30,11 @@ function parseDevelopmentToken(rawToken = '') {
   return null;
 }
 
+function applyDevelopmentRoleOverride(user, headerRole) {
+  if (env.nodeEnv === 'production' || headerRole !== 'admin') return user;
+  return { ...user, role: 'admin', admin: true };
+}
+
 export async function requireAuth(req, _res, next) {
   try {
     const header = req.headers.authorization || '';
@@ -37,10 +43,26 @@ export async function requireAuth(req, _res, next) {
     const headerEmail = String(req.headers['x-user-email'] || '').trim().toLowerCase();
     const headerRole = String(req.headers['x-user-role'] || 'user').trim().toLowerCase();
 
-    const parsedToken = parseDevelopmentToken(token);
+    const parsedToken = env.nodeEnv !== 'production' ? parseDevelopmentToken(token) : null;
     if (parsedToken) {
-      req.user = parsedToken;
+      req.user = applyDevelopmentRoleOverride(parsedToken, headerRole);
       return next();
+    }
+
+    if (token) {
+      try {
+        const decoded = await verifyFirebaseIdToken(token);
+        const role = decoded.role === 'admin' || decoded.admin === true ? 'admin' : 'user';
+        req.user = applyDevelopmentRoleOverride({
+          uid: String(decoded.uid),
+          email: String(decoded.email || '').toLowerCase(),
+          role,
+          admin: role === 'admin'
+        }, headerRole);
+        return next();
+      } catch {
+        throw new AppError(401, 'Token invalido ou expirado.');
+      }
     }
 
     if (env.nodeEnv !== 'production' && headerUserId && headerEmail) {

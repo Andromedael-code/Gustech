@@ -1,41 +1,37 @@
 # GusTech backend
 
-## O que mudou
-- Firebase removido do backend
-- inicialização automática do schema MySQL no startup
-- seed automático do catálogo quando a tabela `products` estiver vazia
-- endpoint opcional `POST /api/seed` para reexecutar a rotina de seed sem duplicar produtos
-- logs mais claros para falhas de banco e de aplicação
+## Como subir sem Docker
+O backend roda em SQLite por padrao no desenvolvimento. Nao precisa instalar MySQL nem abrir Docker.
 
-## Como subir
 ```bash
 cd backend
 npm install
 npm run dev
 ```
 
-O backend passa a:
-1. criar o banco/tabelas se necessário
-2. validar a conexão com MySQL
-3. inserir automaticamente produtos padrão quando `products` estiver vazia
+Na primeira execucao ele cria `data/gustech.sqlite`, aplica o schema e popula o catalogo inicial.
 
-## Variáveis principais
-Use `.env.example` como base e configure:
-- `MYSQL_HOST`
-- `MYSQL_PORT`
-- `MYSQL_DATABASE`
-- `MYSQL_USER`
-- `MYSQL_PASSWORD`
-- `CORS_ORIGIN`
-- `ADMIN_ALLOWLIST`
+## Banco de dados
+Use `.env.example` como base.
 
-## Autenticação local para desenvolvimento
-O backend não depende mais de Firebase Auth.
+- `DB_CLIENT=sqlite`: modo local sem Docker.
+- `SQLITE_PATH=data/gustech.sqlite`: caminho do arquivo SQLite.
+- `DB_CLIENT=mysql`: modo MySQL opcional para ambiente externo/producao.
 
-Para rotas protegidas, use uma destas opções:
+As variaveis `MYSQL_*` so sao usadas quando `DB_CLIENT=mysql`.
+
+## Autenticacao local
+Para rotas protegidas em desenvolvimento:
+
 - `Authorization: Bearer dev-user`
 - `Authorization: Bearer dev-admin`
-- headers `x-user-id`, `x-user-email` e opcionalmente `x-user-role`
+- ou headers `x-user-id`, `x-user-email` e opcionalmente `x-user-role`
 
-## Observação
-O catálogo público em `/api/products` funciona totalmente em MySQL e não depende de credenciais externas.
+## Rotinas automaticas
+Ao iniciar, o backend:
+
+1. cria/valida o schema do banco configurado
+2. testa a conexao
+3. insere produtos padrao quando a tabela `products` esta vazia
+
+O endpoint `POST /api/seed` continua disponivel para reexecutar o seed sem duplicar produtos.

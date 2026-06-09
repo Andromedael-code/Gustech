@@ -27,16 +27,16 @@
   <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
 
   <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
-    <div class="page-container page-header py-4">
+    <div class="page-container page-header py-2.5">
       <div class="page-header__left">
-        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+        <a href="index.html" class="secondary-btn store-icon-btn" aria-label="Voltar para a pagina inicial"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
-        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+        <a href="carrinho.html" class="secondary-btn store-icon-btn relative" aria-label="Carrinho"><i class="fas fa-bag-shopping"></i><span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span></a>
       </div>
     </div>
   </header>
@@ -47,8 +47,8 @@
       <h1 class="text-4xl font-display font-bold mt-2">Entrar no admin</h1>
       <p class="text-slate-400 mt-3">Use a conta de administrador para gerenciar catalogo, estoque, imagens e ficha tecnica.</p>
       <form id="login-form" class="space-y-4 mt-6">
-        <input id="login-email" class="store-input" type="email" placeholder="Email admin" required>
-        <input id="login-password" class="store-input" type="password" placeholder="Senha" required>
+        <input id="login-email" class="store-input" type="email" placeholder="Email admin" aria-label="Email admin" required>
+        <input id="login-password" class="store-input" type="password" placeholder="Senha" aria-label="Senha" required>
         <button class="primary-btn w-full" type="submit">Entrar</button>
       </form>
     </section>
@@ -90,6 +90,8 @@
       <section class="admin-tabs">
         <button class="admin-tab-btn is-active" type="button" data-admin-tab="products">Produtos</button>
         <button class="admin-tab-btn" type="button" data-admin-tab="home">Home</button>
+        <button class="admin-tab-btn" type="button" data-admin-tab="orders">Pedidos</button> <!-- feat: FEATURE-1 -->
+        <button class="admin-tab-btn" type="button" data-admin-tab="reviews">Avaliacoes</button> <!-- feat: FEATURE-2 -->
       </section>
 
       <div id="admin-products-view" class="admin-tab-view">
@@ -103,21 +105,21 @@
             </div>
 
             <form id="product-form" class="admin-form-grid mt-6">
-              <input id="product-id" name="id" class="store-input" placeholder="ID unico do produto">
-              <input id="product-brand" name="brand" class="store-input" placeholder="Marca">
-              <input id="product-name" name="name" class="store-input full-span" placeholder="Nome do produto" required>
+              <input id="product-id" name="id" class="store-input" placeholder="ID unico do produto" aria-label="ID unico do produto">
+              <input id="product-brand" name="brand" class="store-input" placeholder="Marca" aria-label="Marca">
+              <input id="product-name" name="name" class="store-input full-span" placeholder="Nome do produto" aria-label="Nome do produto" required>
 
             <div class="full-span admin-category-selector">
               <div class="mini-meta uppercase tracking-[0.16em]">Categorias do produto</div>
               <div id="product-categories-field" class="admin-category-picker"></div>
             </div>
-            <input id="product-condition" name="condition" class="store-input" placeholder="Condicao">
+            <input id="product-condition" name="condition" class="store-input" placeholder="Condicao" aria-label="Condicao">
 
-              <input id="product-price" name="price" type="number" step="0.01" class="store-input" placeholder="Preco atual" required>
-              <input id="product-old-price" name="oldPrice" type="number" step="0.01" class="store-input" placeholder="Preco antigo">
+              <input id="product-price" name="price" type="number" step="0.01" class="store-input" placeholder="Preco atual" aria-label="Preco atual" required>
+              <input id="product-old-price" name="oldPrice" type="number" step="0.01" class="store-input" placeholder="Preco antigo" aria-label="Preco antigo">
 
-              <input id="product-stock" name="stock" type="number" class="store-input" placeholder="Estoque">
-              <input id="product-relevance" name="relevanceScore" type="number" class="store-input" placeholder="Relevancia">
+              <input id="product-stock" name="stock" type="number" class="store-input" placeholder="Estoque" aria-label="Estoque">
+              <input id="product-relevance" name="relevanceScore" type="number" class="store-input" placeholder="Relevancia" aria-label="Relevancia">
 
               <div class="full-span file-dropzone">
                 <div class="flex items-center justify-between gap-3 mb-3">
@@ -127,7 +129,7 @@
                   </div>
                   <label class="secondary-btn cursor-pointer">
                     <i class="fas fa-upload"></i>Escolher imagem
-                    <input id="product-image-file" type="file" accept="image/*" class="hidden">
+                    <input id="product-image-file" type="file" accept="image/*" class="hidden" aria-label="Imagem principal">
                   </label>
                 </div>
                 <div id="main-image-preview" class="preview-grid"></div>
@@ -141,14 +143,15 @@
                   </div>
                   <label class="secondary-btn cursor-pointer">
                     <i class="fas fa-images"></i>Adicionar galeria
-                    <input id="product-gallery-files" type="file" accept="image/*" multiple class="hidden">
+                    <input id="product-gallery-files" type="file" accept="image/*" multiple class="hidden" aria-label="Galeria do produto">
                   </label>
                 </div>
                 <div id="gallery-preview" class="preview-grid"></div>
               </div>
 
-              <textarea id="product-description" name="description" class="store-textarea full-span" rows="5" placeholder="Descricao detalhada"></textarea>
-              <textarea id="product-specs" name="specs" class="store-textarea full-span" rows="7" placeholder="Ficha tecnica&#10;Exemplo: Armazenamento: 1TB&#10;Exemplo: Conectividade: Wireless"></textarea>
+              <textarea id="product-description" name="description" class="store-textarea full-span" rows="5" placeholder="Descricao detalhada" aria-label="Descricao detalhada"></textarea>
+              <textarea id="product-specs" name="specs" class="store-textarea full-span" rows="7" placeholder="Ficha tecnica&#10;Exemplo: Armazenamento: 1TB&#10;Exemplo: Conectividade: Wireless" aria-label="Ficha tecnica"></textarea>
+              <textarea id="product-variants" name="variants" class="store-textarea full-span" rows="4" placeholder="Variantes&#10;Exemplo: Cor: Preto, Branco&#10;Exemplo: Tamanho: P, M, G" aria-label="Variantes do produto"></textarea>
 
               <label class="surface-panel rounded-2xl px-4 py-3 flex items-center gap-3 full-span">
                 <input id="is-active" type="checkbox" checked>
@@ -172,8 +175,9 @@
             </div>
 
             <div class="table-tools">
-              <input id="admin-product-search" class="store-input" type="search" placeholder="Buscar por nome, marca, categoria ou ID">
+              <input id="admin-product-search" class="store-input" type="search" placeholder="Buscar por nome, marca, categoria ou ID" aria-label="Buscar produto">
             </div>
+            <p id="products-feedback" class="mini-meta mb-3" role="alert"></p>
 
             <div class="pagination-bar pagination-bar--admin">
               <button class="secondary-btn pagination-nav-btn" type="button" data-admin-prev-btn>Anterior</button>
@@ -245,6 +249,118 @@
             </div>
             <button id="save-home-config-btn" class="primary-btn" type="button"><i class="fas fa-floppy-disk"></i>Salvar home</button>
           </div>
+        </section>
+      </div>
+
+      <div id="admin-orders-view" class="admin-tab-view hidden"> <!-- feat: FEATURE-1 -->
+        <section class="surface-panel rounded-[32px] p-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Gestao de pedidos</div>
+              <h2 class="mt-2 text-3xl font-display font-bold">Pedidos da loja</h2>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <select id="admin-orders-status-filter" class="store-select" aria-label="Filtrar por status">
+                <option value="">Todos os status</option>
+                <option value="pending">Pendente</option>
+                <option value="paid">Pago</option>
+                <option value="processing">Em processamento</option>
+                <option value="shipped">Enviado</option>
+                <option value="delivered">Entregue</option>
+                <option value="cancelled">Cancelado</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pagination-bar pagination-bar--admin">
+            <button class="secondary-btn pagination-nav-btn" type="button" data-orders-prev-btn>Anterior</button>
+            <div class="mini-meta pagination-bar__info" data-orders-pagination-info>Carregando...</div>
+            <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-orders-next-btn>Proxima</button>
+          </div>
+
+          <div class="overflow-x-auto mt-4">
+            <table class="admin-table w-full text-left">
+              <thead class="text-xs uppercase text-slate-400">
+                <tr>
+                  <th class="px-4 py-3">Pedido</th>
+                  <th class="px-4 py-3">Cliente</th>
+                  <th class="px-4 py-3">Total</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3 text-right">Acoes</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar pagination-bar--admin mt-4">
+            <button class="secondary-btn pagination-nav-btn" type="button" data-orders-prev-btn>Anterior</button>
+            <div class="mini-meta pagination-bar__info" data-orders-pagination-info>Carregando...</div>
+            <button class="secondary-btn pagination-nav-btn pagination-nav-btn--next" type="button" data-orders-next-btn>Proxima</button>
+          </div>
+        </section>
+
+        <section id="order-detail-panel" class="surface-panel rounded-[32px] p-8 hidden">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Detalhes do pedido</div>
+              <h3 id="order-detail-title" class="mt-2 text-2xl font-display font-bold">Pedido #--</h3>
+            </div>
+            <button id="close-order-detail-btn" class="secondary-btn" type="button"><i class="fas fa-xmark"></i>Fechar</button>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.14em] mb-3">Informacoes do cliente</div>
+              <div id="order-detail-customer" class="space-y-1 text-sm text-slate-300"></div>
+            </div>
+            <div>
+              <div class="mini-meta uppercase tracking-[0.14em] mb-3">Endereco de entrega</div>
+              <div id="order-detail-address" class="space-y-1 text-sm text-slate-300"></div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <div class="mini-meta uppercase tracking-[0.14em] mb-3">Itens do pedido</div>
+            <div id="order-detail-items" class="space-y-3"></div>
+          </div>
+
+          <div class="mt-6">
+            <div class="mini-meta uppercase tracking-[0.14em] mb-3">Historico de status</div>
+            <div id="order-detail-timeline" class="space-y-2"></div>
+          </div>
+
+          <div class="mt-6 flex flex-wrap gap-3 items-center">
+            <div class="mini-meta uppercase tracking-[0.14em]">Mudar status:</div>
+            <select id="order-status-next" class="store-select" aria-label="Novo status">
+              <option value="">Selecionar...</option>
+              <option value="paid">Pago</option>
+              <option value="processing">Em processamento</option>
+              <option value="shipped">Enviado</option>
+              <option value="delivered">Entregue</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+            <button id="order-status-save-btn" class="primary-btn" type="button"><i class="fas fa-check"></i>Aplicar status</button>
+            <button id="order-invoice-btn" class="secondary-btn" type="button"><i class="fas fa-file-invoice"></i>Emitir NF</button>
+            <button id="order-shipping-btn" class="secondary-btn" type="button"><i class="fas fa-truck"></i>Gerar Etiqueta</button>
+          </div>
+        </section>
+      </div>
+
+      <div id="admin-reviews-view" class="admin-tab-view hidden"> <!-- feat: FEATURE-2 -->
+        <section class="surface-panel rounded-[32px] p-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div>
+              <div class="mini-meta uppercase tracking-[0.16em]">Moderacao</div>
+              <h2 class="mt-2 text-3xl font-display font-bold">Avaliacoes de produtos</h2>
+              <p class="text-slate-400 mt-2">Avaliacoes enviadas por clientes verificados. Busque por produto para filtrar.</p>
+            </div>
+          </div>
+          <div class="table-tools mb-4">
+            <input id="admin-reviews-product-search" class="store-input" type="search" placeholder="Buscar por ID ou nome do produto" aria-label="Buscar produto">
+          </div>
+          <div id="reviews-list" class="space-y-4"></div>
+          <p id="reviews-feedback" class="mini-meta mt-4"></p>
         </section>
       </div>
     </section>

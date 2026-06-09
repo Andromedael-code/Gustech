@@ -6,7 +6,6 @@ import {
   countProducts,
   createProduct,
   decrementProductStock,
-  deleteProduct,
   getProductById,
   getProductStock,
   incrementProductSales,
@@ -14,10 +13,10 @@ import {
   listProducts,
   listRelatedProducts,
   refreshProductReviewAggregate,
+  softDeleteProduct,
   summarizeCatalog,
   updateProduct
 } from '../repositories/productRepository.js';
-import { ensureProductSeed } from './seedService.js';
 
 function normalizeStringArray(value) {
   if (Array.isArray(value)) return value.map((item) => String(item || '').trim()).filter(Boolean);
@@ -47,6 +46,36 @@ function normalizeSpecs(value) {
   return [];
 }
 
+function normalizeVariants(value) {
+  if (!value) return [];
+
+  let source = value;
+  if (typeof value === 'string') {
+    try {
+      source = JSON.parse(value);
+    } catch {
+      source = value
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [name, ...rest] = line.split(':');
+          return { name: String(name || '').trim(), options: rest.join(':').split(',').map((item) => item.trim()).filter(Boolean) };
+        });
+    }
+  }
+
+  if (!Array.isArray(source)) return [];
+  return source
+    .map((variant) => {
+      if (typeof variant === 'string') return { name: variant.trim(), options: [] };
+      const name = String(variant?.name || variant?.label || '').trim();
+      const options = normalizeStringArray(variant?.options || variant?.values);
+      return name ? { name, options } : null;
+    })
+    .filter(Boolean);
+}
+
 function normalizeProduct(payload = {}) {
   const name = String(payload.name || '').trim();
   if (!name) throw new AppError(400, 'Nome do produto é obrigatório.');
@@ -69,6 +98,7 @@ function normalizeProduct(payload = {}) {
     gallery,
     highlights: normalizeStringArray(payload.highlights),
     specs: normalizeSpecs(payload.specs),
+    variants: normalizeVariants(payload.variants || payload.variants_json),
     price: Number(payload.price || 0),
     oldPrice: Number(payload.oldPrice || payload.old_price || 0),
     stock: Math.max(0, Number(payload.stock || 0)),
@@ -96,12 +126,12 @@ function enrichProduct(product) {
     isFeatured: Number(product.relevanceScore || 0) >= 900,
     highlights: Array.isArray(product.highlights) ? product.highlights : [],
     specs: Array.isArray(product.specs) ? product.specs : [],
+    variants: Array.isArray(product.variants) ? product.variants : [],
     gallery
   };
 }
 
 export async function listCatalog(filters) {
-  await ensureProductSeed({ logger: console });
   const limit = Math.min(Math.max(Number(filters?.limit) || 200, 1), 500);
   const page = Math.max(Number(filters?.page) || 1, 1);
   const [products, total] = await Promise.all([
@@ -123,7 +153,6 @@ export async function listCatalog(filters) {
 }
 
 export async function getCatalogOverview(filters = {}) {
-  await ensureProductSeed({ logger: console });
   const [summary, products] = await Promise.all([
     summarizeCatalog(getPool(), filters || {}),
     listCatalogCategories(getPool())
@@ -139,8 +168,8 @@ export async function getCatalogOverview(filters = {}) {
 }
 
 export async function getCatalogProduct(id) {
-  await ensureProductSeed({ logger: console });
   const product = await getProductById(getPool(), id);
+  if (product && !product.isActive) throw new AppError(404, 'Produto nao encontrado.');
   if (!product) throw new AppError(404, 'Produto não encontrado.');
   const relatedProducts = (await listRelatedProducts(getPool(), enrichProduct(product), 4)).map(enrichProduct);
   return { ...enrichProduct(product), relatedProducts };
@@ -163,7 +192,7 @@ export async function updateCatalogProduct(id, payload) {
 export async function removeCatalogProduct(id) {
   const existing = await getProductById(getPool(), id);
   if (!existing) throw new AppError(404, 'Produto não encontrado.');
-  await withTransaction((connection) => deleteProduct(connection, id));
+  await withTransaction((connection) => softDeleteProduct(connection, id));
   return { ok: true };
 }
 
@@ -179,7 +208,6 @@ export async function refreshReviewSummary(productId) {
 }
 
 export async function listCategorySummaries() {
-  await ensureProductSeed({ logger: console });
   const products = await listCatalogCategories(getPool());
   const totals = new Map();
   const consoleProductIds = new Set();

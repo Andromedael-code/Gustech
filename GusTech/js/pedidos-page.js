@@ -1,5 +1,7 @@
 import { auth } from './firebase-app.js';
-import { api, currency, escapeHtml, qs, toast } from './storefront-core.js';
+import { api, currency, escapeHtml, qs, qsa, toast } from './storefront-core.js'; // feat: FEATURE-5
+
+let allOrders = []; // feat: FEATURE-4
 
 function formatDate(value) {
   const date = new Date(value || 0);
@@ -74,6 +76,23 @@ function renderOrders(orders = []) {
             <div class="text-lg font-semibold mt-1">${escapeHtml(order.method || '-')}</div>
           </div>
         </div>
+        ${order.shipping?.labelCode || order.invoice?.number ? `
+          <div class="mt-4 grid gap-3 md:grid-cols-2">
+            ${order.invoice?.number ? `
+              <div class="surface-panel rounded-2xl px-4 py-3">
+                <div class="mini-meta">Nota Fiscal</div>
+                <div class="text-sm font-semibold mt-1">${escapeHtml(order.invoice.number)}</div>
+              </div>
+            ` : ''}
+            ${order.shipping?.labelCode ? `
+              <div class="surface-panel rounded-2xl px-4 py-3">
+                <div class="mini-meta">Codigo de rastreio</div>
+                <div class="text-sm font-semibold mt-1 font-mono">${escapeHtml(order.shipping.labelCode)}</div>
+                <div class="mini-meta mt-0.5">${escapeHtml(order.shipping.carrier || '')}</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''} <!-- feat: FEATURE-6 -->
         <div class="mt-5 space-y-3">
           ${items.map((item) => `
             <div class="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/35 px-4 py-3">
@@ -89,14 +108,46 @@ function renderOrders(orders = []) {
             </div>
           `).join('')}
         </div>
+        ${order.status === 'pending' ? `
+          <div class="mt-4 flex justify-end">
+            <button
+              class="danger-btn cancel-order-btn"
+              data-order-id="${escapeHtml(order.id)}"
+              type="button"
+            ><i class="fas fa-xmark"></i>Cancelar pedido</button>
+          </div>
+        ` : ''} <!-- feat: FEATURE-5 -->
       </article>
     `;
   }).join('');
+
+  qsa('.cancel-order-btn', root).forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!confirm('Tem certeza que deseja cancelar este pedido? Esta acao nao pode ser desfeita.')) return;
+      const orderId = btn.dataset.orderId;
+      try {
+        await api(`/orders/${orderId}`, { method: 'DELETE' }); // feat: FEATURE-5
+        toast('Pedido cancelado com sucesso.', 'success');
+        await loadOrders();
+      } catch (error) {
+        toast(error.message || 'Nao foi possivel cancelar o pedido.', 'error');
+      }
+    });
+  });
+}
+
+function filterAndRenderOrders() {
+  const statusFilter = qs('#orders-status-filter')?.value || ''; // feat: FEATURE-4
+  const filtered = statusFilter
+    ? allOrders.filter((order) => order.status === statusFilter)
+    : allOrders;
+  renderOrders(filtered);
 }
 
 async function loadOrders() {
   const response = await api('/orders/me');
-  renderOrders(response.orders || []);
+  allOrders = response.orders || []; // feat: FEATURE-4
+  filterAndRenderOrders();
 }
 
 function bootstrap() {
@@ -114,6 +165,8 @@ function bootstrap() {
       toast(error.message || 'Falha ao carregar pedidos.', 'error');
     }
   });
+
+  qs('#orders-status-filter')?.addEventListener('change', filterAndRenderOrders); // feat: FEATURE-4
 }
 
 bootstrap();

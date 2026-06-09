@@ -27,16 +27,17 @@
   <div id="toast-root" class="fixed top-24 right-4 z-50 flex flex-col gap-3"></div>
 
   <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/70 backdrop-blur-xl">
-    <div class="page-container page-header py-4">
+    <div class="page-container page-header py-2.5">
       <div class="page-header__left">
-        <a href="index.html" class="secondary-btn"><i class="fas fa-arrow-left"></i>Voltar a pagina</a>
+        <a href="index.html" class="secondary-btn store-icon-btn" aria-label="Voltar para a pagina inicial"><i class="fas fa-arrow-left"></i></a>
       </div>
       <div class="page-header__center">
-        <a href="index.html" class="text-3xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
+        <a href="index.html" class="text-2xl font-display font-bold tracking-wide">GUS<span class="text-blue-400">TECH</span></a>
       </div>
       <div class="page-header__right">
         <div data-theme-slot></div>
-        <a href="carrinho.html" class="secondary-btn"><i class="fas fa-bag-shopping"></i>Carrinho</a>
+        <a href="favoritos.html" class="secondary-btn store-icon-btn" aria-label="Favoritos"><i class="fas fa-heart"></i></a>
+        <a href="carrinho.html" class="secondary-btn store-icon-btn relative" aria-label="Carrinho"><i class="fas fa-bag-shopping"></i><span id="cart-badge" class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-[11px] text-white flex items-center justify-center scale-0">0</span></a>
       </div>
     </div>
   </header>
@@ -72,9 +73,9 @@
           </div>
 
           <form id="login-form" class="account-form-grid mt-6">
-            <input required id="login-email" type="email" placeholder="E-mail" class="store-input full-span">
+            <input required id="login-email" type="email" placeholder="E-mail" class="store-input full-span" aria-label="E-mail">
             <div class="password-field full-span">
-              <input required id="login-password" type="password" minlength="6" placeholder="Senha" class="store-input">
+              <input required id="login-password" type="password" minlength="6" placeholder="Senha" class="store-input" aria-label="Senha">
               <button id="toggle-login-password" type="button" class="password-field__toggle" aria-label="Mostrar senha"><i class="fas fa-eye"></i></button>
             </div>
             <button class="primary-btn full-span" type="submit">Entrar</button>
@@ -93,16 +94,16 @@
           </div>
 
           <form id="signup-form" class="account-form-grid mt-6">
-            <input required id="signup-username" placeholder="Nome de usuario" class="store-input">
-            <input required id="signup-name" placeholder="Nome completo" class="store-input">
-            <input required id="signup-email" type="email" placeholder="E-mail" class="store-input full-span">
+            <input required id="signup-username" placeholder="Nome de usuario" class="store-input" aria-label="Nome de usuario">
+            <input required id="signup-name" placeholder="Nome completo" class="store-input" aria-label="Nome completo">
+            <input required id="signup-email" type="email" placeholder="E-mail" class="store-input full-span" aria-label="E-mail">
             <div class="password-field full-span">
-              <input required id="signup-password" type="password" minlength="6" placeholder="Senha" class="store-input">
+              <input required id="signup-password" type="password" minlength="6" placeholder="Senha" class="store-input" aria-label="Senha">
               <button id="toggle-signup-password" type="button" class="password-field__toggle" aria-label="Mostrar senha"><i class="fas fa-eye"></i></button>
             </div>
             <div class="full-span mini-meta" id="password-strength-label">Forca da senha: -</div>
-            <input id="signup-phone" placeholder="Celular" class="store-input">
-            <input id="signup-cpf" placeholder="CPF" class="store-input">
+            <input id="signup-phone" placeholder="Celular" class="store-input" aria-label="Celular">
+            <input id="signup-cpf" placeholder="CPF" class="store-input" aria-label="CPF">
             <label class="surface-panel rounded-2xl px-4 py-3 flex items-start gap-3 full-span">
               <input id="signup-terms" type="checkbox" class="mt-1 accent-blue-500">
               <span class="text-sm text-slate-300">Li e concordo com os termos e com a politica de privacidade da GusTech.</span>
@@ -160,7 +161,7 @@
                 <div class="mini-meta uppercase tracking-[0.14em]">Confirmação por SMS</div>
                 <p id="phone-verification-message" class="mt-2 text-sm text-slate-300">Enviamos um código para o novo número. Digite abaixo para concluir a troca.</p>
                 <div class="account-phone-verify-grid mt-4">
-                  <input id="phone-verification-code" class="store-input" inputmode="numeric" placeholder="Código recebido por SMS">
+                  <input id="phone-verification-code" class="store-input" inputmode="numeric" placeholder="Código recebido por SMS" aria-label="Codigo recebido por SMS">
                   <button id="confirm-phone-code-btn" class="primary-btn" type="button">Confirmar código</button>
                 </div>
               </div>
@@ -187,12 +188,12 @@
 
             <form id="address-form" class="surface-panel rounded-[28px] p-5 md:p-6 mt-6 account-form-grid">
               <input id="address-id" type="hidden">
-              <input id="address-label" placeholder="Nome do endereco" class="store-input full-span">
-              <input id="address-street" placeholder="Rua / Avenida" class="store-input full-span">
-              <input id="address-number" placeholder="Numero" class="store-input">
-              <input id="address-neighborhood" placeholder="Bairro" class="store-input">
-              <input id="address-zip" placeholder="CEP" class="store-input">
-              <input id="address-complement" placeholder="Complemento" class="store-input">
+              <input id="address-label" placeholder="Nome do endereco" class="store-input full-span" aria-label="Nome do endereco">
+              <input id="address-street" placeholder="Rua / Avenida" class="store-input full-span" aria-label="Rua ou avenida">
+              <input id="address-number" placeholder="Numero" class="store-input" aria-label="Numero">
+              <input id="address-neighborhood" placeholder="Bairro" class="store-input" aria-label="Bairro">
+              <input id="address-zip" placeholder="CEP" class="store-input" aria-label="CEP">
+              <input id="address-complement" placeholder="Complemento" class="store-input" aria-label="Complemento">
               <label class="surface-panel rounded-2xl px-4 py-3 flex items-center gap-3 full-span">
                 <input id="address-default" type="checkbox" class="accent-blue-500">
                 <span>Definir como endereco principal</span>
@@ -218,7 +219,7 @@
           <button id="logout-btn" class="danger-btn mt-6 hidden" type="button"><i class="fas fa-right-from-bracket"></i>Sair</button>
         </section>
 
-        <p id="feedback" class="mt-5 text-sm hidden"></p>
+        <p id="feedback" class="mt-5 text-sm hidden" role="alert"></p>
       </section>
     </div>
   </main>

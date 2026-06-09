@@ -38,8 +38,26 @@ function syncCartBadge(items = readLocalCart()) {
   const badge = document.getElementById('cart-badge');
   if (!badge) return;
   const total = items.reduce((acc, item) => acc + Number(item.quantity || 0), 0);
-  badge.textContent = String(total);
+  badge.textContent = total > 99 ? '99+' : String(total);
+  badge.style.display = total > 0 ? 'flex' : 'none';
   badge.classList.toggle('scale-0', total <= 0);
+}
+
+export async function refreshCartBadge() {
+  const user = await getCurrentUser();
+  if (!user || user.isAnonymous) {
+    syncCartBadge(normalizeLocalCart(readLocalCart()));
+    return;
+  }
+
+  try {
+    const response = await api('/cart/me');
+    const items = normalizeLocalCart(response.items || []);
+    localStorage.removeItem(LOCAL_CART_KEY);
+    syncCartBadge(items);
+  } catch {
+    syncCartBadge(normalizeLocalCart(readLocalCart()));
+  }
 }
 
 export function stars(rating = 0) {
@@ -51,8 +69,13 @@ export function stars(rating = 0) {
 }
 
 export function toast(message, type = 'info') {
-  const root = document.getElementById('toast-root');
-  if (!root) return;
+  let root = document.getElementById('toast-root');
+  if (!root) {
+    root = document.createElement('div');
+    root.id = 'toast-root';
+    root.className = 'toast-root';
+    document.body.appendChild(root);
+  }
   const item = document.createElement('div');
   const isLight = document.documentElement.classList.contains('light');
   const themeClass = type === 'error'
@@ -60,10 +83,13 @@ export function toast(message, type = 'info') {
     : type === 'success'
       ? isLight ? 'border-emerald-500/20 text-emerald-700 bg-emerald-500/10' : 'border-emerald-500/30 text-emerald-100'
       : isLight ? 'border-blue-500/20 text-blue-700 bg-blue-500/10' : 'border-blue-500/30 text-blue-100';
-  item.className = `surface-panel px-4 py-3 rounded-2xl border ${themeClass} text-sm shadow-xl`;
+  item.className = `toast surface-panel px-4 py-3 rounded-2xl border ${themeClass} text-sm shadow-xl`;
+  item.setAttribute('role', type === 'error' ? 'alert' : 'status');
   item.textContent = message;
   root.appendChild(item);
+  window.requestAnimationFrame(() => item.classList.add('toast--visible'));
   setTimeout(() => {
+    item.classList.remove('toast--visible');
     item.style.opacity = '0';
     setTimeout(() => item.remove(), 260);
   }, 2800);
@@ -104,6 +130,7 @@ export async function loadCart() {
   try {
     const response = await api('/cart/me');
     const items = normalizeLocalCart(response.items || []);
+    localStorage.removeItem(LOCAL_CART_KEY);
     syncCartBadge(items);
     return items;
   } catch {
@@ -202,6 +229,10 @@ export async function loadWishlist() {
   return response.items || [];
 }
 
+export async function checkWishlist(productId) {
+  return api(`/wishlist/check/${productId}`);
+}
+
 export async function toggleWishlist(productId) {
   return api(`/wishlist/me/${productId}/toggle`, { method: 'POST', body: JSON.stringify({}) });
 }
@@ -236,4 +267,8 @@ export function getCheckoutSelection() {
   }
 }
 
-syncCartBadge();
+syncCartBadge([]);
+refreshCartBadge().catch(() => syncCartBadge(normalizeLocalCart(readLocalCart())));
+auth.onAuthStateChanged(() => {
+  refreshCartBadge().catch(() => syncCartBadge(normalizeLocalCart(readLocalCart())));
+});

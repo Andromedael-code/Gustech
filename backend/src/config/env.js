@@ -11,7 +11,8 @@ const splitList = (value, fallback = []) => {
 export const env = {
   nodeEnv: process.env.NODE_ENV || 'development',
   port: Number(process.env.PORT || 8080),
-  corsOrigins: splitList(process.env.CORS_ORIGIN, ['http://localhost:5500', 'http://127.0.0.1:5500']),
+  dbClient: String(process.env.DB_CLIENT || 'sqlite').trim().toLowerCase(),
+  corsOrigins: splitList(process.env.CORS_ORIGIN, ['http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:5501', 'http://127.0.0.1:5501']),
   mysql: {
     host: process.env.MYSQL_HOST || '127.0.0.1',
     port: Number(process.env.MYSQL_PORT || 3306),
@@ -24,7 +25,13 @@ export const env = {
     decimalNumbers: true,
     timezone: 'Z'
   },
+  sqlite: {
+    path: process.env.SQLITE_PATH || 'data/gustech.sqlite'
+  },
   adminAllowlist: splitList(process.env.ADMIN_ALLOWLIST).map((item) => item.toLowerCase()),
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID || ''
+  },
   sms: {
     defaultCountryCode: String(process.env.SMS_DEFAULT_COUNTRY_CODE || '55').replace(/\D/g, '') || '55',
     twilioAccountSid: process.env.TWILIO_ACCOUNT_SID || '',

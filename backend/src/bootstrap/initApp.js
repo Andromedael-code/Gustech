@@ -4,5 +4,5 @@ import { ensureProductSeed } from '../services/seedService.js';
 export async function initializeApplication() {
   await ensureSchema();
   await getPool().query('SELECT 1');
-  await ensureProductSeed({ logger: console });
+  await ensureProductSeed({ logger: console }); // fix: BUG-3
 }

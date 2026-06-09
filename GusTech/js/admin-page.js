@@ -25,7 +25,13 @@ const state = {
     productOptions: [],
     availableCategories: [...DEFAULT_HOME_CATEGORIES]
   },
-  homeSlideSearch: {}
+  homeSlideSearch: {},
+  orders: [], // feat: FEATURE-1
+  ordersFilters: { status: '', page: 1, limit: 15 }, // feat: FEATURE-1
+  ordersPagination: { page: 1, limit: 15, total: 0, totalPages: 1, hasNextPage: false, hasPreviousPage: false }, // feat: FEATURE-1
+  selectedOrder: null, // feat: FEATURE-1
+  reviewsProductFilter: '', // feat: FEATURE-2
+  loadedAdminUid: null
 };
 
 function setFeedback(message, type = 'info') {
@@ -49,6 +55,16 @@ function parseSpecs(value) {
       return { label: String(label || '').trim(), value: rest.join(':').trim() };
     })
     .filter((item) => item.label && item.value);
+}
+
+function parseVariants(value) {
+  return readLines(value)
+    .map((line) => {
+      const [name, ...rest] = line.split(':');
+      const options = rest.join(':').split(',').map((item) => item.trim()).filter(Boolean);
+      return { name: String(name || '').trim(), options };
+    })
+    .filter((item) => item.name);
 }
 
 function resetFileInputs() {
@@ -187,6 +203,7 @@ function renderProductCategoryPicker(selectedCategories = null) {
           type="search"
           value="${escapeHtml(state.productCategoryQuery)}"
           placeholder="${state.productCategories.length ? 'Buscar outra categoria' : 'Buscar e adicionar categorias'}"
+          aria-label="Buscar categoria do produto"
           autocomplete="off">
       </div>
     </div>
@@ -281,6 +298,7 @@ function fillForm(product = null) {
   qs('#product-relevance').value = product?.relevanceScore ?? 0;
   qs('#product-description').value = product?.description || '';
   qs('#product-specs').value = (product?.specs || []).map((item) => `${item.label}: ${item.value}`).join('\n');
+  qs('#product-variants').value = (product?.variants || []).map((item) => `${item.name}: ${(item.options || []).join(', ')}`).join('\n');
   qs('#is-active').checked = product ? Boolean(product.isActive) : true;
 
   state.mainImage = createRemoteAsset(product?.image || '', 'Imagem principal');
@@ -304,6 +322,7 @@ function formToPayload() {
     relevanceScore: Number(qs('#product-relevance').value || 0),
     description: qs('#product-description').value.trim(),
     specs: parseSpecs(qs('#product-specs').value),
+    variants: parseVariants(qs('#product-variants').value),
     isActive: qs('#is-active').checked
   };
 }
@@ -381,7 +400,12 @@ function productRow(product) {
       <td class="px-4 py-5 align-middle">
         <div class="admin-price-cell">R$ ${Number(product.price || 0).toFixed(2).replace('.', ',')}</div>
       </td>
-      <td class="px-4 py-5 align-middle admin-compact-cell">${Number(product.stock || 0)}</td>
+      <td class="px-4 py-5 align-middle admin-compact-cell">
+        ${Number(product.stock || 0) <= 3
+          ? `<span class="font-bold text-red-400" title="Estoque baixo">${Number(product.stock || 0)} &#9888;</span>` // feat: FEATURE-3
+          : Number(product.stock || 0)
+        }
+      </td>
       <td class="px-4 py-5 align-middle">
         <div class="admin-actions-cell">
           <span class="admin-status-cell">${product.isActive ? 'Ativo' : 'Inativo'}</span>
@@ -675,12 +699,17 @@ function renderHomeConfig() {
 }
 
 function setActiveTab(tab) {
-  state.activeTab = tab === 'home' ? 'home' : 'products';
+  const validTabs = ['products', 'home', 'orders', 'reviews']; // feat: FEATURE-1
+  state.activeTab = validTabs.includes(tab) ? tab : 'products';
   qsa('[data-admin-tab]').forEach((button) => {
     button.classList.toggle('is-active', button.dataset.adminTab === state.activeTab);
   });
   qs('#admin-products-view')?.classList.toggle('hidden', state.activeTab !== 'products');
   qs('#admin-home-view')?.classList.toggle('hidden', state.activeTab !== 'home');
+  qs('#admin-orders-view')?.classList.toggle('hidden', state.activeTab !== 'orders'); // feat: FEATURE-1
+  qs('#admin-reviews-view')?.classList.toggle('hidden', state.activeTab !== 'reviews'); // feat: FEATURE-2
+  if (state.activeTab === 'orders') loadOrders().catch(() => {}); // feat: FEATURE-1
+  if (state.activeTab === 'reviews') loadAdminReviews().catch(() => {}); // feat: FEATURE-2
 }
 
 async function loadHomeConfig() {
@@ -839,7 +868,322 @@ async function handleLogin(event) {
   }
 }
 
+// Orders admin. // feat: FEATURE-1
+const ORDER_STATUS_LABELS = {
+  pending: 'Pendente',
+  paid: 'Pago',
+  processing: 'Em processamento',
+  shipped: 'Enviado',
+  delivered: 'Entregue',
+  cancelled: 'Cancelado'
+};
+
+const ORDER_STATUS_CLASSES = {
+  pending: 'status-pill--info',
+  paid: 'status-pill--ok',
+  processing: 'status-pill--info',
+  shipped: 'status-pill--info',
+  delivered: 'status-pill--ok',
+  cancelled: 'status-pill--warn'
+};
+
+function orderStatusPill(status) {
+  const label = ORDER_STATUS_LABELS[status] || status;
+  const cls = ORDER_STATUS_CLASSES[status] || 'status-pill--info';
+  return `<span class="status-pill ${cls}">${escapeHtml(label)}</span>`;
+}
+
+function formatOrderDate(value) {
+  const date = new Date(value || 0);
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString('pt-BR');
+}
+
+function orderRow(order) {
+  const customer = order.customer || {};
+  const total = Number(order.total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const orderId = escapeHtml(String(order.id || ''));
+  return `
+    <tr class="border-b border-white/10">
+      <td class="px-4 py-5 align-middle">
+        <div class="font-semibold text-white">#${orderId}</div>
+        <div class="mini-meta mt-1">${formatOrderDate(order.createdAt)}</div>
+      </td>
+      <td class="px-4 py-5 align-middle">
+        <div class="text-sm font-medium text-white">${escapeHtml(customer.name || '-')}</div>
+        <div class="mini-meta">${escapeHtml(customer.email || '-')}</div>
+      </td>
+      <td class="px-4 py-5 align-middle">
+        <div class="font-semibold">${total}</div>
+        <div class="mini-meta">${escapeHtml(order.method || '-')}</div>
+      </td>
+      <td class="px-4 py-5 align-middle">${orderStatusPill(order.status)}</td>
+      <td class="px-4 py-5 align-middle text-right">
+        <button class="secondary-btn admin-icon-btn view-order-btn" data-order-id="${orderId}" aria-label="Ver pedido ${orderId}">
+          <i class="fas fa-eye"></i>
+        </button>
+      </td>
+    </tr>
+  `;
+}
+
+function renderOrdersList(orders = []) {
+  const tbody = qs('#orders-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = orders.length
+    ? orders.map(orderRow).join('')
+    : '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Nenhum pedido encontrado.</td></tr>';
+
+  qsa('.view-order-btn', tbody).forEach((button) => {
+    button.addEventListener('click', () => {
+      const orderId = Number(button.dataset.orderId);
+      const order = state.orders.find((item) => Number(item.id) === orderId);
+      if (order) showOrderDetail(order);
+    });
+  });
+}
+
+function renderOrdersPagination() {
+  const p = state.ordersPagination;
+  qsa('[data-orders-pagination-info]').forEach((el) => {
+    el.textContent = `Pagina ${p.page} de ${p.totalPages} | ${p.total} pedidos`;
+  });
+  qsa('[data-orders-prev-btn]').forEach((btn) => { btn.disabled = !p.hasPreviousPage; });
+  qsa('[data-orders-next-btn]').forEach((btn) => { btn.disabled = !p.hasNextPage; });
+}
+
+async function loadOrders() {
+  try {
+    const query = new URLSearchParams({ page: String(state.ordersFilters.page), limit: String(state.ordersFilters.limit) });
+    if (state.ordersFilters.status) query.set('status', state.ordersFilters.status);
+    const response = await api(`/orders?${query.toString()}`); // feat: FEATURE-1
+    state.orders = Array.isArray(response.orders) ? response.orders : [];
+    state.ordersPagination = response.pagination || state.ordersPagination;
+    renderOrdersList(state.orders);
+    renderOrdersPagination();
+  } catch (error) {
+    toast(error.message || 'Nao foi possivel carregar os pedidos.', 'error');
+  }
+}
+
+function showOrderDetail(order) {
+  state.selectedOrder = order;
+  const panel = qs('#order-detail-panel');
+  if (!panel) return;
+
+  qs('#order-detail-title').textContent = `Pedido #${order.id}`;
+
+  const customer = order.customer || {};
+  qs('#order-detail-customer').innerHTML = `
+    <div><span class="text-slate-500">Nome:</span> ${escapeHtml(customer.name || '-')}</div>
+    <div><span class="text-slate-500">Email:</span> ${escapeHtml(customer.email || '-')}</div>
+    <div><span class="text-slate-500">Telefone:</span> ${escapeHtml(customer.phone || '-')}</div>
+    <div><span class="text-slate-500">CPF:</span> ${escapeHtml(customer.cpf || '-')}</div>
+    <div class="mt-2"><span class="text-slate-500">Pagamento:</span> ${escapeHtml(order.method || '-')}</div>
+    <div><span class="text-slate-500">Total:</span> <strong>${Number(order.total || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></div>
+    ${order.invoice?.number ? `<div class="mt-2"><span class="text-slate-500">NF:</span> ${escapeHtml(order.invoice.number)}</div>` : ''}
+    ${order.shipping?.labelCode ? `<div><span class="text-slate-500">Rastreio:</span> ${escapeHtml(order.shipping.labelCode)} (${escapeHtml(order.shipping.carrier || '')})</div>` : ''}
+  `;
+
+  const addr = order.deliveryAddress || {};
+  qs('#order-detail-address').innerHTML = addr.street
+    ? `<div>${escapeHtml(addr.street)}, ${escapeHtml(addr.number || '')}</div>
+       <div>${escapeHtml(addr.neighborhood || '')}</div>
+       <div>CEP ${escapeHtml(addr.zip || '')}</div>
+       ${addr.complement ? `<div>${escapeHtml(addr.complement)}</div>` : ''}`
+    : '<div class="text-slate-500">Endereco nao disponivel.</div>';
+
+  const items = Array.isArray(order.items) ? order.items : [];
+  qs('#order-detail-items').innerHTML = items.length
+    ? items.map((item) => `
+        <div class="flex items-center gap-4 rounded-2xl border border-white/10 bg-slate-950/35 px-4 py-3">
+          <img src="${escapeHtml(item.image || '')}" alt="${escapeHtml(item.name || 'Produto')}" class="w-14 h-14 rounded-xl object-cover bg-slate-900 border border-white/10">
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-white">${escapeHtml(item.name || 'Produto')}</div>
+            <div class="mini-meta">Qtd: ${Number(item.quantity || 1)}</div>
+          </div>
+          <div class="text-right">
+            <div class="mini-meta">Subtotal</div>
+            <div class="font-semibold">${(Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+          </div>
+        </div>
+      `).join('')
+    : '<div class="text-slate-500">Sem itens.</div>';
+
+  const timeline = Array.isArray(order.timeline) ? order.timeline : [];
+  qs('#order-detail-timeline').innerHTML = timeline.length
+    ? timeline.map((entry) => `
+        <div class="flex items-center gap-3 text-sm">
+          <span class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0"></span>
+          <span>${orderStatusPill(entry.status)}</span>
+          <span class="text-slate-400">${formatOrderDate(entry.at)}</span>
+        </div>
+      `).join('')
+    : '<div class="text-slate-500 text-sm">Sem historico.</div>';
+
+  const statusNext = qs('#order-status-next');
+  if (statusNext) statusNext.value = '';
+  qs('#order-invoice-btn')?.classList.toggle('hidden', Boolean(order.invoice?.number));
+  qs('#order-shipping-btn')?.classList.toggle('hidden', Boolean(order.shipping?.labelCode));
+
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeOrderDetail() {
+  state.selectedOrder = null;
+  qs('#order-detail-panel')?.classList.add('hidden');
+}
+
+function wireOrdersEvents() {
+  qs('#admin-orders-status-filter')?.addEventListener('change', (event) => {
+    state.ordersFilters.status = event.target.value;
+    state.ordersFilters.page = 1;
+    loadOrders().catch(() => {});
+  });
+
+  qsa('[data-orders-prev-btn]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!state.ordersPagination.hasPreviousPage) return;
+      state.ordersFilters.page = Math.max(state.ordersFilters.page - 1, 1);
+      loadOrders().catch(() => {});
+    });
+  });
+
+  qsa('[data-orders-next-btn]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!state.ordersPagination.hasNextPage) return;
+      state.ordersFilters.page += 1;
+      loadOrders().catch(() => {});
+    });
+  });
+
+  qs('#close-order-detail-btn')?.addEventListener('click', closeOrderDetail);
+
+  qs('#order-status-save-btn')?.addEventListener('click', async () => {
+    const order = state.selectedOrder;
+    if (!order) return;
+    const nextStatus = qs('#order-status-next')?.value;
+    if (!nextStatus) {
+      toast('Selecione um status.', 'error');
+      return;
+    }
+    try {
+      await api(`/orders/${order.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: nextStatus }) });
+      toast('Status atualizado com sucesso.', 'success');
+      await loadOrders();
+      closeOrderDetail();
+    } catch (error) {
+      toast(error.message || 'Nao foi possivel atualizar o status.', 'error');
+    }
+  });
+
+  qs('#order-invoice-btn')?.addEventListener('click', async () => {
+    const order = state.selectedOrder;
+    if (!order) return;
+    try {
+      await api(`/orders/${order.id}/invoice`, { method: 'POST', body: '{}' });
+      toast('Nota fiscal emitida.', 'success');
+      await loadOrders();
+      closeOrderDetail();
+    } catch (error) {
+      toast(error.message || 'Nao foi possivel emitir a nota.', 'error');
+    }
+  });
+
+  qs('#order-shipping-btn')?.addEventListener('click', async () => {
+    const order = state.selectedOrder;
+    if (!order) return;
+    const carrier = prompt('Transportadora (ex: Correios, Jadlog):', 'Correios') || 'Correios';
+    try {
+      await api(`/orders/${order.id}/shipping-label`, { method: 'POST', body: JSON.stringify({ carrier }) });
+      toast('Etiqueta gerada com sucesso.', 'success');
+      await loadOrders();
+      closeOrderDetail();
+    } catch (error) {
+      toast(error.message || 'Nao foi possivel gerar a etiqueta.', 'error');
+    }
+  });
+}
+
+// Reviews admin. // feat: FEATURE-2
+function starsHtml(rating = 0) {
+  const safe = Math.max(0, Math.min(5, Number(rating || 0)));
+  return Array.from({ length: 5 }, (_, i) =>
+    `<i class="fas fa-star ${i < Math.round(safe) ? 'text-yellow-400' : 'text-gray-600'}"></i>`
+  ).join('');
+}
+
+function reviewCard(review) {
+  return `
+    <article class="surface-panel rounded-[24px] p-5 border border-white/10">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div class="font-semibold text-white">${escapeHtml(review.name || 'Cliente')}</div>
+          <div class="mini-meta mt-0.5">${escapeHtml(review.productId || '')}</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="flex gap-0.5">${starsHtml(review.rating)}</div>
+          <span class="mini-meta">${escapeHtml(String(review.rating || '-'))}</span>
+        </div>
+      </div>
+      <p class="mt-3 text-sm text-slate-300 leading-relaxed">${escapeHtml(review.comment || '')}</p>
+      <div class="mini-meta mt-3">${formatOrderDate(review.createdAt)}</div>
+    </article>
+  `;
+}
+
+function resolveReviewProductFilter(filter) {
+  const normalized = String(filter || '').trim().toLowerCase();
+  const options = state.homeOptions.productOptions || [];
+  const match = options.find((product) =>
+    String(product.id || '').toLowerCase() === normalized
+    || String(product.name || '').toLowerCase().includes(normalized)
+  );
+  return match?.id || filter;
+}
+
+async function loadAdminReviews() {
+  const feedbackEl = qs('#reviews-feedback');
+  const listEl = qs('#reviews-list');
+  if (!listEl) return;
+
+  const filter = state.reviewsProductFilter.trim();
+  if (!filter) {
+    listEl.innerHTML = '<div class="text-slate-400 text-sm">Digite o ID ou nome de um produto para ver as avaliacoes.</div>';
+    if (feedbackEl) feedbackEl.textContent = '';
+    return;
+  }
+
+  if (feedbackEl) feedbackEl.textContent = 'Carregando avaliacoes...';
+  try {
+    const productId = resolveReviewProductFilter(filter);
+    const response = await api(`/reviews/${encodeURIComponent(productId)}`); // feat: FEATURE-2
+    const reviews = Array.isArray(response.reviews) ? response.reviews : [];
+    listEl.innerHTML = reviews.length
+      ? reviews.map(reviewCard).join('')
+      : '<div class="text-slate-400 text-sm">Nenhuma avaliacao encontrada para este produto.</div>';
+    if (feedbackEl) feedbackEl.textContent = `${reviews.length} avaliacao(oes) encontrada(s).`;
+  } catch (error) {
+    if (feedbackEl) feedbackEl.textContent = error.message || 'Erro ao carregar avaliacoes.';
+    listEl.innerHTML = '';
+  }
+}
+
+function wireReviewsEvents() {
+  let reviewsDebounce;
+  qs('#admin-reviews-product-search')?.addEventListener('input', (event) => {
+    state.reviewsProductFilter = event.target.value;
+    clearTimeout(reviewsDebounce);
+    reviewsDebounce = setTimeout(() => {
+      if (state.activeTab === 'reviews') loadAdminReviews().catch(() => {});
+    }, 400);
+  });
+}
+
 function wireFormEvents() {
+  wireOrdersEvents(); // feat: FEATURE-1
+  wireReviewsEvents(); // feat: FEATURE-2
+
   qs('#product-image-file')?.addEventListener('change', (event) => {
     handleMainImageSelection(event).catch((error) => toast(error.message || 'Falha ao ler a imagem.', 'error'));
   });
@@ -909,10 +1253,19 @@ async function bootstrap() {
   auth.onAuthStateChanged(async (user) => {
     const loggedIn = Boolean(user && !user.isAnonymous);
     setLoggedIn(loggedIn);
-    if (!loggedIn) return;
+    if (!loggedIn) {
+      state.loadedAdminUid = null;
+      return;
+    }
+
+    const adminUid = String(user.uid || '');
+    const shouldLoadAdminData = state.loadedAdminUid !== adminUid;
+    state.loadedAdminUid = adminUid;
 
     localStorage.setItem('gustech_user_role', 'admin');
     localStorage.setItem('gustech_session_email', String(user.email || '').toLowerCase());
+    if (!shouldLoadAdminData) return;
+
     try {
       await Promise.all([loadProducts(), loadHomeConfig()]);
     } catch {

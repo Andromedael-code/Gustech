@@ -591,6 +591,27 @@ html.light .store-textarea {
   color: #60a5fa;
 }
 
+.toast-root {
+  position: fixed;
+  top: 6rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.toast {
+  transform: translateY(14px);
+  opacity: 0;
+  transition: transform 0.24s ease, opacity 0.24s ease;
+}
+
+.toast--visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
 html.light .primary-btn {
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   box-shadow: 0 16px 32px rgba(37, 99, 235, 0.18);

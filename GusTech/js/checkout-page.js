@@ -1,4 +1,4 @@
-import { createOrder, currency, getCheckoutSelection, loadCart, loadProfile, qs, toast } from './storefront-core.js';
+import { createOrder, currency, escapeHtml, getCheckoutSelection, loadCart, loadProfile, qs, toast } from './storefront-core.js';
 
 const state = { cart: [], profile: null, addresses: [], method: 'pix' };
 
@@ -12,10 +12,10 @@ function renderProfile() {
   if (!profileBox || !state.profile) return;
   profileBox.innerHTML = `
     <div class="mini-meta">Cliente logado</div>
-    <div class="mt-2 text-lg font-semibold">${state.profile.name || '-'}</div>
-    <div class="text-sm text-gray-400">${state.profile.email || '-'}</div>
-    <div class="text-sm text-gray-400">${state.profile.phone || '-'}</div>
-    <div class="text-sm text-gray-400">CPF: ${state.profile.cpf || '-'}</div>
+    <div class="mt-2 text-lg font-semibold">${escapeHtml(state.profile.name || '-')}</div>
+    <div class="text-sm text-gray-400">${escapeHtml(state.profile.email || '-')}</div>
+    <div class="text-sm text-gray-400">${escapeHtml(state.profile.phone || '-')}</div>
+    <div class="text-sm text-gray-400">CPF: ${escapeHtml(state.profile.cpf || '-')}</div>
   `;
 }
 
@@ -28,7 +28,7 @@ function renderAddresses() {
     preview.innerHTML = 'Cadastre um endereco em Minha conta antes de finalizar a compra.';
     return;
   }
-  select.innerHTML = state.addresses.map((address) => `<option value="${address.id}">${address.label || 'Endereco'}${address.isDefault ? ' (Principal)' : ''}</option>`).join('');
+  select.innerHTML = state.addresses.map((address) => `<option value="${escapeHtml(address.id)}">${escapeHtml(address.label || 'Endereco')}${address.isDefault ? ' (Principal)' : ''}</option>`).join('');
   const current = state.addresses.find((item) => item.isDefault) || state.addresses[0];
   select.value = current.id;
   preview.textContent = `${current.street}, ${current.number} - ${current.neighborhood} · CEP ${current.zip}${current.complement ? ` · ${current.complement}` : ''}`;
@@ -40,7 +40,7 @@ function renderSummary() {
   if (!wrap || !totalNode) return;
   wrap.innerHTML = state.cart.map((item) => `
     <div class="summary-line">
-      <span>${item.name} x${item.quantity || 1}</span>
+      <span>${escapeHtml(item.name || 'Produto')} x${Number(item.quantity || 1)}</span>
       <strong>${currency(Number(item.price || 0) * Number(item.quantity || 1))}</strong>
     </div>
   `).join('');

@@ -1,5 +1,6 @@
 import {
   addToCart,
+  checkWishlist,
   currency,
   escapeHtml,
   getCurrentUser,
@@ -17,7 +18,8 @@ import { formatCategoryLabel, formatReviewSummary, hasRealReviews } from './stor
 const state = {
   product: null,
   reviews: [],
-  galleryIndex: 0
+  galleryIndex: 0,
+  inWishlist: false
 };
 
 function formatReviewDate(value) {
@@ -78,6 +80,7 @@ function renderProduct() {
   const safeDescription = escapeHtml(product.description || '');
   const productCategories = Array.isArray(product.categories) && product.categories.length ? product.categories : [product.category].filter(Boolean);
   const productGallery = product.gallery?.length ? product.gallery : [product.image];
+  const productVariants = Array.isArray(product.variants) ? product.variants : [];
   const showReviews = hasRealReviews(product.reviews);
   const reviewSummary = formatReviewSummary(product.rating || 0, product.reviews || 0);
   const discount = Number(product.oldPrice || 0) > Number(product.price || 0)
@@ -118,7 +121,7 @@ function renderProduct() {
               <span>${escapeHtml(reviewSummary)}</span>
             </div>
           </div>
-          <button id="wishlist-btn" class="secondary-btn !rounded-full !p-4" type="button" aria-label="Favoritar ${safeName}">
+          <button id="wishlist-btn" class="secondary-btn !rounded-full !p-4 ${state.inWishlist ? 'text-red-300' : ''}" type="button" aria-label="Favoritar ${safeName}">
             <i class="fas fa-heart"></i>
           </button>
         </div>
@@ -173,19 +176,34 @@ function renderProduct() {
               `).join('')
             : '<div class="mini-meta">Sem especificações adicionais cadastradas.</div>'}
         </div>
+        ${productVariants.length ? `
+          <div class="mt-6">
+            <h3 class="text-xl font-display font-bold mb-3">Variantes</h3>
+            <div class="grid gap-3 md:grid-cols-2">
+              ${productVariants.map((variant) => `
+                <div class="surface-panel rounded-2xl px-4 py-4">
+                  <div class="mini-meta">${escapeHtml(variant.name)}</div>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    ${(variant.options || []).map((option) => `<span class="status-pill status-pill--info">${escapeHtml(option)}</span>`).join('') || '<span class="mini-meta">Sem opcoes cadastradas.</span>'}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
       </div>
 
       <div class="surface-panel rounded-[32px] p-8">
         <h2 class="text-2xl font-display font-bold mb-5">Avaliações</h2>
         <form id="review-form" class="space-y-3">
-          <select id="review-rating" class="store-select">
+          <select id="review-rating" class="store-select" aria-label="Nota da avaliacao">
             <option value="5">5 estrelas</option>
             <option value="4">4 estrelas</option>
             <option value="3">3 estrelas</option>
             <option value="2">2 estrelas</option>
             <option value="1">1 estrela</option>
           </select>
-          <textarea id="review-comment" class="store-textarea" rows="4" placeholder="Conte como foi sua experiência com este produto"></textarea>
+          <textarea id="review-comment" class="store-textarea" rows="4" placeholder="Conte como foi sua experiência com este produto" aria-label="Comentario da avaliacao"></textarea>
           <button class="primary-btn w-full" type="submit">Enviar avaliação</button>
         </form>
         <div id="reviews-list" class="space-y-3 mt-6"></div>
@@ -262,7 +280,10 @@ function renderProduct() {
         return;
       }
 
-      await toggleWishlist(product.id);
+      const result = await toggleWishlist(product.id);
+      state.inWishlist = Boolean(result.saved);
+      renderProduct();
+      renderReviews();
       toast('Wishlist atualizada.', 'success');
     } catch (error) {
       toast(error.message || 'Falha ao atualizar wishlist.', 'error');
@@ -304,6 +325,15 @@ async function bootstrap() {
   const [product, reviews] = await Promise.all([loadProduct(productId), loadReviews(productId)]);
   state.product = product;
   state.reviews = reviews;
+  try {
+    const user = await getCurrentUser();
+    if (user && !user.isAnonymous) {
+      const result = await checkWishlist(productId);
+      state.inWishlist = Boolean(result.inWishlist);
+    }
+  } catch {
+    state.inWishlist = false;
+  }
   syncProductReviewAggregate();
   renderProduct();
   renderReviews();

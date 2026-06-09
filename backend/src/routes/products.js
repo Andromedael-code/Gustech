@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express, { Router } from 'express';
 import { requireAdmin, requireAuth } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/http.js';
 import { createCatalogProduct, getCatalogOverview, getCatalogProduct, listCatalog, listCategorySummaries, removeCatalogProduct, updateCatalogProduct } from '../services/productService.js';
@@ -32,7 +32,7 @@ router.post('/', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   res.status(201).json({ product: await createCatalogProduct(req.body || {}) });
 }));
 
-router.post('/upload-image', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+router.post('/upload-image', express.json({ limit: '15mb' }), requireAuth, requireAdmin, asyncHandler(async (req, res) => {
   const relativePath = await saveUploadedImage({
     dataUrl: req.body?.dataUrl,
     originalName: req.body?.filename

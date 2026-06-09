@@ -11,6 +11,7 @@
     "seed": "node -e \"import('./src/services/seedService.js').then(m=>m.ensureProductSeed({force:true,logger:console})).then(r=>{console.log(r);process.exit(0)}).catch(e=>{console.error(e);process.exit(1)})\""
   },
   "dependencies": {
+    "better-sqlite3": "^12.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

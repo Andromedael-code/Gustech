@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { isSqlite } from '../config/mysql.js';
 
 export async function listWishlistItems(connection, uid) {
   const [rows] = await connection.execute(
@@ -17,6 +18,16 @@ export async function listWishlistItems(connection, uid) {
 
 export async function addWishlistItem(connection, uid, productId) {
   const id = crypto.randomUUID();
+  if (isSqlite()) {
+    await connection.execute(
+      `INSERT INTO wishlist_items (id, user_id, product_id, created_at, updated_at)
+       VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+       ON CONFLICT(user_id, product_id) DO UPDATE SET updated_at = CURRENT_TIMESTAMP`,
+      [id, uid, productId]
+    );
+    return id;
+  }
+
   await connection.execute(
     `INSERT INTO wishlist_items (id, user_id, product_id, created_at, updated_at)
      VALUES (?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())

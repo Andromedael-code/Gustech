@@ -1,4 +1,23 @@
+import { isSqlite } from '../config/mysql.js';
+
 export async function upsertUserProfile(connection, uid, profile) {
+  if (isSqlite()) {
+    await connection.execute(
+      `INSERT INTO users (id, email, username, full_name, cpf, phone, phone_verified_at, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+       ON CONFLICT(id) DO UPDATE SET
+         email = excluded.email,
+         username = excluded.username,
+         full_name = excluded.full_name,
+         cpf = excluded.cpf,
+         phone = excluded.phone,
+         phone_verified_at = COALESCE(excluded.phone_verified_at, users.phone_verified_at),
+         updated_at = CURRENT_TIMESTAMP`,
+      [uid, profile.email || '', profile.username, profile.name, profile.cpf, profile.phone, profile.phoneVerifiedAt || null]
+    );
+    return;
+  }
+
   await connection.execute(
     `INSERT INTO users (id, email, username, full_name, cpf, phone, phone_verified_at, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
@@ -51,6 +70,19 @@ export async function listAdmins(connection) {
 }
 
 export async function upsertAdmin(connection, adminRecord) {
+  if (isSqlite()) {
+    await connection.execute(
+      `INSERT INTO admins (id, uid, email, role, created_by, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+       ON CONFLICT(id) DO UPDATE SET
+         uid = excluded.uid,
+         role = excluded.role,
+         updated_at = CURRENT_TIMESTAMP`,
+      [adminRecord.email, adminRecord.uid, adminRecord.email, adminRecord.role, adminRecord.createdBy]
+    );
+    return;
+  }
+
   await connection.execute(
     `INSERT INTO admins (id, uid, email, role, created_by, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())

@@ -7,12 +7,18 @@ export async function listMyWishlist(uid) {
   return listWishlistItems(getPool(), uid);
 }
 
+export async function checkWishlistProduct(uid, productId) {
+  const normalizedProductId = String(productId || '').trim();
+  if (!normalizedProductId) throw new AppError(400, 'Produto invalido.');
+  return { inWishlist: await hasWishlistItem(getPool(), uid, normalizedProductId) };
+}
+
 export async function toggleWishlistProduct(uid, productId) {
   const normalizedProductId = String(productId || '').trim();
   if (!normalizedProductId) throw new AppError(400, 'Produto invalido.');
 
   const product = await getProductById(getPool(), normalizedProductId);
-  if (!product) throw new AppError(404, 'Produto nao encontrado.');
+  if (!product || !product.isActive) throw new AppError(404, 'Produto nao encontrado.'); // feat: FUNC-5
 
   const alreadySaved = await hasWishlistItem(getPool(), uid, normalizedProductId);
   if (alreadySaved) {

@@ -1,9 +1,9 @@
 import express from 'express';
-import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import cors from 'cors';
 import helmet from 'helmet';
-import morgan from 'morgan';
 import { env } from './config/env.js';
+import { httpLogger, logger } from './config/logger.js';
 import { getPool } from './config/mysql.js';
 import { initializeApplication } from './bootstrap/initApp.js';
 import { apiRateLimit } from './middleware/rateLimit.js';
@@ -15,30 +15,49 @@ import reviewsRouter from './routes/reviews.js';
 import seedRouter from './routes/seed.js';
 import storefrontRouter from './routes/storefront.js';
 import usersRouter from './routes/users.js';
+import utilsRouter from './routes/utils.js';
 import wishlistRouter from './routes/wishlist.js';
 
 const app = express();
 
 app.disable('x-powered-by');
+app.disable('etag');
 app.set('trust proxy', 1);
-app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })); // fix: SEC-1
 app.use(cors({
   origin: env.corsOrigins,
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Authorization', 'Content-Type', 'x-user-id', 'x-user-email', 'x-user-role']
+  allowedHeaders: ['Authorization', 'Content-Type', 'x-user-id', 'x-user-email', 'x-user-role'],
+  exposedHeaders: ['Retry-After', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset']
 }));
-app.use(express.json({ limit: '15mb' }));
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'backend', 'uploads'), {
+app.use('/uploads', express.static(fileURLToPath(new URL('../uploads/', import.meta.url)), {
   maxAge: '30d',
   immutable: true
 }));
-app.use(morgan(env.nodeEnv === 'production' ? 'combined' : 'dev'));
+app.use(httpLogger);
+app.use((req, res, next) => {
+  if (req.path === '/api/products/upload-image') return next();
+  return express.json({ limit: '1mb' })(req, res, next);
+});
+app.use('/api', (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 app.use('/api', apiRateLimit);
 
 app.get('/health', async (_req, res, next) => {
   try {
+    const start = Date.now(); // feat: FUNC-2
     await getPool().query('SELECT 1');
-    res.json({ ok: true, database: 'mysql', firebase: false });
+    const dbLatencyMs = Date.now() - start; // feat: FUNC-2
+    res.json({
+        ok: true,
+        version: process.env.npm_package_version || '2.0.0',
+        uptime: Math.floor(process.uptime()),
+        database: env.dbClient,
+        environment: env.nodeEnv,
+        dbLatencyMs // feat: FUNC-2
+      });
   } catch (error) {
     next(error);
   }
@@ -51,17 +70,27 @@ app.use('/api/products', productsRouter);
 app.use('/api/storefront', storefrontRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/wishlist', wishlistRouter);
+app.use('/api/utils', utilsRouter);
 app.use('/api/seed', seedRouter);
 app.use(notFound);
 app.use(errorHandler);
 
 initializeApplication()
   .then(() => {
-    app.listen(env.port, () => {
-      console.log(`GusTech backend on :${env.port}`);
+    const server = app.listen(env.port, () => {
+      logger.info({ port: env.port }, 'GusTech backend iniciado');
+    });
+
+    server.on('error', (error) => {
+      if (error?.code === 'EADDRINUSE') {
+        logger.error({ port: env.port }, 'Porta do backend ja esta em uso. Encerre o processo antigo ou altere PORT no .env.');
+        process.exit(1);
+      }
+      logger.error({ err: error }, 'Falha no servidor HTTP');
+      process.exit(1);
     });
   })
   .catch((error) => {
-    console.error('Falha ao inicializar a aplicação:', error);
+    logger.error({ err: error }, 'Falha ao inicializar a aplicacao');
     process.exit(1);
   });
